@@ -16,12 +16,12 @@ let service = {
                     apiKeySecret: item.apiKeySecret,
                     maxTableLen: item.maxTableLen
                 }),
-                rest: new BitmexRequest({
-                    testnet: item.testnet == 1,
-                    apiKey: item.apiKeyID,
-                    apiSecret: item.apiKeySecret,
-                    retryTimes: 2,
-                }),
+                // rest: new BitmexRequest({
+                //     testnet: item.testnet == 1,
+                //     apiKey: item.apiKeyID,
+                //     apiSecret: item.apiKeySecret,
+                //     retryTimes: 2,
+                // }),
             });
         }
     },
@@ -38,9 +38,9 @@ let service = {
         });
     },
 
-    wsPosition: () => {
+    wsOrderBookL2_25: (symbol) => {
         for (let account of service.accounts) {
-            account.socket.addStream('XBTUSD', 'orderBookL2_25', (data, symbol, tableName) => {
+            account.socket.addStream(symbol, 'orderBookL2_25', (data, symbol, tableName) => {
                 if (data.length > 0) {
                     console.log(account.id, symbol, tableName, JSON.stringify(data));
                 }
@@ -48,10 +48,41 @@ let service = {
         }
     },
 
-    restOrderBookL2: async (bitmex) => {
-        bitmex = service.accounts[0];
-        let res = await bitmex.request('GET', '/orderBook/L2');
-        console.log(res);
+    //This require authenticate
+    wsExecution: (symbol) => {
+        for (let account of service.accounts) {
+            account.socket.addStream(symbol, 'execution', (data, symbol, tableName) => {
+                if (data.length > 0) {
+                    console.log(account.id, symbol, tableName, JSON.stringify(data));
+                }
+            });
+        }
     },
+
+    wsOrder: (symbol) => {
+        for (let account of service.accounts) {
+            account.socket.addStream(symbol, 'order', (data, symbol, tableName) => {
+                if (data.length > 0) {
+                    console.log(account.id, symbol, tableName, JSON.stringify(data));
+                }
+            });
+        }
+    },
+
+    wsPosition: (symbol) => {
+        for (let account of service.accounts) {
+            account.socket.addStream(symbol, 'position', (data, symbol, tableName) => {
+                if (data.length > 0) {
+                    console.log(account.id, symbol, tableName, JSON.stringify(data));
+                }
+            });
+        }
+    },
+
+    // restOrderBookL2: (bitmex) => {
+    //     bitmex = service.accounts[0];
+    //     let res = bitmex.request('GET', '/orderBook/L2');
+    //     console.log(res);
+    // },
 };
 module.exports = service;
