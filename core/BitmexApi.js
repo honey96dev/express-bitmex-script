@@ -36,17 +36,24 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
         return cipher;
     };
 
+    this.getTimestamp = (onFulfilled, onRejected) => {
+        request(baseApiPath, (error, response, body) => {
+            if (!response || response.statusCode !== 200) {
+                if (typeof onRejected === 'function') onRejected(error);
+                return;
+            }
+
+            const result = JSON.parse(body);
+            if (typeof onFulfilled === 'function') onFulfilled(result.timestamp);
+        });
+    };
+
     this.request = (method, path, data, requireAuthentication, onFulfilled, onRejected) => {
         debug('request-begin');
         method = method.toUpperCase();
         if (requireAuthentication) {
-            request(baseApiPath, (error, response, body) => {
-                if (!response || response.statusCode !== 200) {
-                    return;
-                }
-                const result = JSON.parse(body);
-
-                const expires = parseInt(result.timestamp / 1000 + 5);
+            this.getTimestamp((result) => {
+                const expires = parseInt(result / 1000 + 5);
                 const signature = this.signMessage(this.apiKeySecret, method, apiVersion + path, expires, data);
                 const headers = {
                     'content-type' : 'application/json',
@@ -70,6 +77,7 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                 };
 
                 request(requestOptions, function (error, response, body) {
+                    console.warn('request-done');
                     if (error || response.statusCode !== 200) {
                         console.warn('request', error);
                         if (typeof onRejected === 'function') {

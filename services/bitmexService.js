@@ -20,15 +20,9 @@ let service = {
         for (let item of configs) {
             let account = {
                 id: item.id,
-                // socket: new BitMEXClient({
-                //     testnet: item.testnet == 1,
-                //     apiKeyID: item.apiKeyID,
-                //     apiKeySecret: item.apiKeySecret,
-                //     maxTableLen: item.maxTableLen
-                // }),
                 rest: new BitMEXApi(item.testnet == 1, item.apiKeyID, item.apiKeySecret),
                 socket: new WebSocket(item.testnet ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
-                    retryCount: 2, // default is 2
+                    retryCount: 10, // default is 2
                     reconnectInterval: 1 // default is 5
                 }),
                 subscribes: [],
@@ -36,17 +30,10 @@ let service = {
             service.accounts.push(account);
 
             account.socket.on('connect', () => {
-                const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
-
-                request(url, (error, response, body) => {
-                    if (!response || response.statusCode !== 200) {
-                        return;
-                    }
-                    const result = JSON.parse(body);
-
-                    const expires = parseInt(result.timestamp / 1000 + 5);
+                account.rest.getTimestamp((result) => {
+                    const expires = parseInt(result / 1000 + 5);
                     const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
-
+                    
                     account.socket.send(JSON.stringify({
                         op: "authKeyExpires",
                         args: [item.apiKeyID, expires, signature],
@@ -56,10 +43,19 @@ let service = {
                         account.socket.send(subscribe);
                     }
                 });
+                // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
+                //
+                // request(url, (error, response, body) => {
+                //     if (!response || response.statusCode !== 200) {
+                //         return;
+                //     }
+                //     const result = JSON.parse(body);
+                //
+                //
+                // });
             });
 
             account.socket.on('message', (data) => {
-                // console.log(new Date(), item.id, data);
                 data = JSON.parse(data);
                 if (!!data.table) {
                     const table = data.table;
@@ -75,6 +71,7 @@ let service = {
 
             account.socket.on('reconnect', (data) => {
                 console.warn('reconnect', account.id, data);
+                // account.socket.start();
             });
 
             account.socket.on('destroyed', (data) => {
@@ -182,7 +179,7 @@ let service = {
                     orderID: data.orderID,
                 }
             }, (data) => {
-                console.log('onWsOrder', data);
+                console.log('rest.order', JSON.stringify(data));
             });
         }
     },
@@ -192,7 +189,7 @@ let service = {
     },
 
     onWsPosition: (action, data, account) => {
-        console.log('onWsPosition', account.id, action, JSON.stringify(data));
+        // console.log('onWsPosition', account.id, action, JSON.stringify(data));
     },
 };
 module.exports = {BitMEXService: service, GET, POST, PUT, DELETE};

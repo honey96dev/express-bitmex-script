@@ -25,17 +25,17 @@ if (cluster.isWorker) {
     server.on('error', onError);
     server.on('listening', onListening);
     //
-    BitMEXService.initFromDb(config.bitmex.table, () => {
-        // bitmexService.wsOrderBookL2_25('*');
-        // bitmexService.wsOrder('*');
-        // bitmexService.wsExecution('*');
-        // bitmexService.wsPosition('*');
-        BitMEXService.restPosition(GET, {}, (data) => {
-            console.log('restPosition', JSON.stringify(data));
-        }, (error) => {
-            console.warn('restPosition', JSON.stringify(error));
-        });
-    });
+    // BitMEXService.initFromDb(config.bitmex.table, () => {
+    //     BitMEXService.wsOrderBookL2_25('*');
+    //     BitMEXService.wsOrder('*');
+    //     BitMEXService.wsExecution('*');
+    //     BitMEXService.wsPosition('*');
+    //     // BitMEXService.restPosition(GET, {}, (data) => {
+    //     //     console.log('restPosition', JSON.stringify(data));
+    //     // }, (error) => {
+    //     //     console.warn('restPosition', JSON.stringify(error));
+    //     // });
+    // });
 }
 
 function normalizePort(val) {

@@ -10,6 +10,7 @@ import logger from 'morgan';
 import config from './core/config';
 import indexRouter from './routes/index';
 import usersRouter from './routes/users';
+import restRouter from './routes/rest';
 
 const app = express();
 const MySQLStore = expressMysqlSessionLib(session);
@@ -47,6 +48,7 @@ function requiresLogin(req, res, next) {
     }
 }
 app.use('/users', usersRouter);
+app.use('/rest', restRouter);
 app.use('/', requiresLogin, indexRouter);
 
 // catch 404 and forward to error handler
