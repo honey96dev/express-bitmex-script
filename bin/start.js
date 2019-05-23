@@ -3,8 +3,7 @@ import debugLib from 'debug';
 import http from 'http';
 import cluster from 'cluster';
 import config from '../core/config';
-import bitmexService from '../services/bitmexService';
-import {BitMEXApi, GET, POST, PUT, DELETE} from '../core/bitmexApi';
+import {BitMEXService, GET, POST, PUT, DELETE} from '../services/bitmexService';
 
 if (cluster.isMaster) {
     cluster.fork();
@@ -25,22 +24,18 @@ if (cluster.isWorker) {
     server.listen(port);
     server.on('error', onError);
     server.on('listening', onListening);
-
-    bitmexService.initFromDb(config.bitmex.table, () => {
-        // bitmexService.wsOrderBookL2_25('XBTUSD');
+    //
+    BitMEXService.initFromDb(config.bitmex.table, () => {
+        // bitmexService.wsOrderBookL2_25('*');
         // bitmexService.wsOrder('*');
-        bitmexService.wsExecution('*');
+        // bitmexService.wsExecution('*');
         // bitmexService.wsPosition('*');
+        BitMEXService.restPosition(GET, {}, (data) => {
+            console.log('restPosition', JSON.stringify(data));
+        }, (error) => {
+            console.warn('restPosition', JSON.stringify(error));
+        });
     });
-    let bitmex = new BitMEXApi(
-        config.bitmex.testnet,
-        config.bitmex.apiKeyID,
-        config.bitmex.apiKeySecret,
-        config.bitmex.maxTableLen,
-    );
-    // bitmex.orderBookL2({symbol: 'XBTUSD'});
-    // bitmex.position(GET, {symbol: '*'});
-    // bitmex.tradeBucketed({binSize: '5m', count: 750, startTime: '2018-02-08T04:30:36Z'});
 }
 
 function normalizePort(val) {
