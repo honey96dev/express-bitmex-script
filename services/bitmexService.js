@@ -214,13 +214,40 @@ let service = {
                     }
                 }
             }
-            // rest.order(GET, {
-            //     filter: {
-            //         orderID: data.orderID,
-            //     }
-            // }, (data) => {
-            //     console.log('rest.order', JSON.stringify(data));
-            // });
+        } else if (action === 'update') {
+            const rest = account.rest;
+            if (account.isParent) {
+                for (let item of service.accounts) {
+                    if (item.isParent) continue;
+
+                    const headers = {
+                        'content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'testnet': item.testnet,
+                        'apikeyid': item.apiKeyID,
+                        'apikeysecret': item.apiKeySecret,
+                    };
+                    let body;
+                    for (let item of data) {
+                        if (item.ordStatus !== 'Canceled') continue;
+                        body = {
+                            order: item,
+                        };
+                        if (!body || _.isEmpty(body)) body = '';
+                        else if (_.isObject(body)) body = JSON.stringify(body);
+                        console.log('clone to', item.id, body);
+
+                        const requestOptions = {
+                            headers: headers,
+                            url: 'http://127.0.0.1:3000/rest/order',
+                            method: DELETE,
+                            body: body
+                        };
+                        request(requestOptions);
+                    }
+                }
+            }
         }
     },
 

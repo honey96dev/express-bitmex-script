@@ -98,7 +98,7 @@ if (cluster.isWorker) {
         method: POST,
         body: data
     };
-    request(requestOptions);
+    // request(requestOptions);
 }
 
 function normalizePort(val) {
