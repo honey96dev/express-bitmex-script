@@ -4,6 +4,8 @@ import WebSocket from 'ws-reconnect';
 import request from 'request';
 import crypto from 'crypto'
 import {BitMEXApi, GET, POST, PUT, DELETE} from '../core/BitmexApi';
+import config from "../core/config";
+import _ from "lodash";
 
 let service = {
     accounts: [],
@@ -20,12 +22,16 @@ let service = {
         for (let item of configs) {
             let account = {
                 id: item.id,
-                rest: new BitMEXApi(item.testnet == 1, item.apiKeyID, item.apiKeySecret),
-                socket: new WebSocket(item.testnet ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+                isParent: Boolean(item.isParent),
+                rest: new BitMEXApi(Boolean(item.testnet), item.apiKeyID, item.apiKeySecret),
+                socket: new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
                     retryCount: 10, // default is 2
                     reconnectInterval: 1 // default is 5
                 }),
                 subscribes: [],
+                testnet: Boolean(item.testnet),
+                apiKeyID: item.apiKeyID,
+                apiKeySecret: item.apiKeySecret,
             };
             service.accounts.push(account);
 
@@ -33,7 +39,7 @@ let service = {
                 account.rest.getTimestamp((result) => {
                     const expires = parseInt(result / 1000 + 5);
                     const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
-                    
+
                     account.socket.send(JSON.stringify({
                         op: "authKeyExpires",
                         args: [item.apiKeyID, expires, signature],
@@ -77,7 +83,9 @@ let service = {
             account.socket.on('destroyed', (data) => {
                 console.warn('destroyed', account.id, data);
             });
-            account.socket.start();
+            if (account.isParent) {
+                account.socket.start();
+            }
         }
     },
 
@@ -170,26 +178,58 @@ let service = {
         }
     },
 
+
     onWsOrder: (action, data, account) => {
         console.log('onWsOrder', account.id, action, JSON.stringify(data));
         if (action === 'insert') {
             const rest = account.rest;
-            rest.order(GET, {
-                filter: {
-                    orderID: data.orderID,
+            if (account.isParent) {
+                for (let item of service.accounts) {
+                    if (item.isParent) continue;
+
+                    const headers = {
+                        'content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'testnet': item.testnet,
+                        'apikeyid': item.apiKeyID,
+                        'apikeysecret': item.apiKeySecret,
+                    };
+                    let body;
+                    for (let item of data) {
+                        body = {
+                            order: item,
+                        };
+                        if (!body || _.isEmpty(body)) body = '';
+                        else if (_.isObject(body)) body = JSON.stringify(body);
+                        console.log('clone to', item.id, body);
+
+                        const requestOptions = {
+                            headers: headers,
+                            url: 'http://127.0.0.1:3000/rest/order',
+                            method: POST,
+                            body: body
+                        };
+                        request(requestOptions);
+                    }
                 }
-            }, (data) => {
-                console.log('rest.order', JSON.stringify(data));
-            });
+            }
+            // rest.order(GET, {
+            //     filter: {
+            //         orderID: data.orderID,
+            //     }
+            // }, (data) => {
+            //     console.log('rest.order', JSON.stringify(data));
+            // });
         }
     },
 
     onWsOrderBookL2_25: (action, data, account) => {
-        console.log('onWsOrderBookL2_25', account.id, action, JSON.stringify(data));
+        // console.log('onWsOrderBookL2_25', account.id, action, JSON.stringify(data));
     },
 
     onWsPosition: (action, data, account) => {
-        // console.log('onWsPosition', account.id, action, JSON.stringify(data));
+        console.log('onWsPosition', account.id, action, JSON.stringify(data));
     },
 };
 module.exports = {BitMEXService: service, GET, POST, PUT, DELETE};
