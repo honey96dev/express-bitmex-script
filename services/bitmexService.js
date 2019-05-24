@@ -19,11 +19,16 @@ let service = {
 
     renewSocket: (account) => {
         console.warn('renewSocket', account.id);
+        const timestamp = new Date().getTime();
+        if (account.lastTimestamp > timestamp - 60000) {
+            console.warn('renewSocket-still alive', account.id);
+            return;
+        }
         if (account.renewSocketTimeoutId) {
             clearTimeout(account.renewSocketTimeoutId);
         }
         let socket = new WebSocket(Boolean(account.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
-            retryCount: 10, // default is 2
+            retryCount: 2, // default is 2
             reconnectInterval: 1 // default is 5
         });
 
@@ -43,9 +48,9 @@ let service = {
 
                 if (!!account.socket) {
                     account.socket.destroy();
+                    // delete account.socket;
                 }
                 account.socket = socket;
-                account.renewSocketTimeoutId = setTimeout(service.renewSocket, 300000, account);
             });
             // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
             //
@@ -60,6 +65,8 @@ let service = {
         });
 
         socket.on('message', (data) => {
+            // const timestamp = new Date().getTime();
+            account.lastTimestamp = new Date().getTime();
             data = JSON.parse(data);
             if (!!data.table) {
                 const table = data.table;
@@ -84,9 +91,15 @@ let service = {
 
         if (account.isParent) {
             socket.start();
+        } else {
+            if (!!account.socket && account.socket.isConnected) {
+                account.socket.destroy();
+                // delete account.socket;
+            }
+            account.socket = socket;
         }
 
-
+        account.renewSocketTimeoutId = setTimeout(service.renewSocket, 30000, account);
     },
     //
     // init: (configs) => {
@@ -176,6 +189,7 @@ let service = {
                 testnet: Boolean(item.testnet),
                 apiKeyID: item.apiKeyID,
                 apiKeySecret: item.apiKeySecret,
+                lastTimestamp: 0,
             };
 
             service.accounts.push(account);
