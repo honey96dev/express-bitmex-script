@@ -20,6 +20,84 @@ router.get('/order', function (req, res, next) {
     });
 });
 
+router.put('/order', function (req, res, next) {
+    const headers = req.headers;
+    const params = req.body;
+
+    const testnet = Boolean(headers.testnet);
+    const apiKeyID = headers.apikeyid;
+    const apiKeySecret = headers.apikeysecret;
+    const orderID = params.orderID;
+    const orderQty = params.orderQty;
+    const price = params.price;
+    const pegOffsetValue = params.pegOffsetValue;
+    const isClone = params.isClone;
+
+    const bitmexApi = new BitMEXApi(testnet, apiKeyID, apiKeySecret);
+    const filter = JSON.stringify({
+        // text: '*' + order.orderID
+    });
+    console.log('rest-order put', testnet, apiKeyID, apiKeySecret, filter);
+    if (isClone) {
+        bitmexApi.order(GET, {}, (data) => {
+            // res.status(200).send({data});
+            if (!data || data.length === 0) {
+                console.log('rest-order put', testnet, apiKeyID, apiKeySecret, JSON.stringify(data));
+                res.status(200).send({});
+                return;
+            }
+            for (let item of data) {
+                if (!item.text.includes(orderID)) continue;
+
+                let body = {};
+                if (typeof orderID !== 'undefined') {
+                    body.orderID = item.orderID;
+                }
+                if (typeof orderQty !== 'undefined') {
+                    body.orderQty = orderQty;
+                }
+                if (typeof price !== 'undefined') {
+                    body.price = price;
+                }
+                if (typeof pegOffsetValue !== 'undefined') {
+                    body.pegOffsetValue = pegOffsetValue;
+                }
+                bitmexApi.order(PUT, body, (data) => {
+                    res.status(200).send(data);
+                }, (error) => {
+                    console.log('rest-order put', error);
+                    res.status(500).send(error);
+                });
+            }
+        }, (error) => {
+            console.log('rest-order put', error);
+            res.status(500).send(error);
+        });
+    } else {
+
+        let body = {};
+        if (typeof orderID !== 'undefined') {
+            body.orderID = orderID;
+        }
+        if (typeof orderQty !== 'undefined') {
+            body.orderQty = orderQty;
+        }
+        if (typeof price !== 'undefined') {
+            body.price = price;
+        }
+        if (typeof pegOffsetValue !== 'undefined') {
+            body.pegOffsetValue = pegOffsetValue;
+        }
+        bitmexApi.order(PUT, body, (data) => {
+            res.status(200).send(data);
+        }, (error) => {
+            console.log('rest-order put', error);
+            res.status(500).send(error);
+        });
+    }
+});
+
+
 router.post('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
@@ -89,7 +167,6 @@ router.post('/order', function (req, res, next) {
         res.status(500).send(error);
     });
 });
-
 router.delete('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;

@@ -78,9 +78,9 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                 };
 
                 request(requestOptions, function (error, response, body) {
-                    console.info('request', new Date(), response.statusCode, requestOptions.method, requestOptions.url);
+                    debug('request', new Date(), response.statusCode, requestOptions.method, requestOptions.url);
                     if (error || response.statusCode !== 200) {
-                        console.warn('request', error);
+                        console.warn('request', error, body);
                         if (typeof onRejected === 'function') {
                             onRejected(error);
                         }
@@ -111,8 +111,9 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
             };
 
             request(requestOptions, function (error, response, body) {
+                debug('request', new Date(), response.statusCode, requestOptions.method, requestOptions.url);
                 if (error || response.statusCode !== 200) {
-                    console.warn('request', error);
+                    console.warn('request', error, body);
                     if (typeof onRejected === 'function') {
                         onRejected(error);
                     }

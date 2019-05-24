@@ -399,22 +399,74 @@ let service = {
                     };
                     let body;
                     for (let item of data) {
-                        if (item.ordStatus !== 'Canceled') continue;
-                        body = {
-                            order: item,
-                            isClone: true,
-                        };
-                        if (!body || _.isEmpty(body)) body = '';
-                        else if (_.isObject(body)) body = JSON.stringify(body);
-                        console.log('clone to', account1.id, body);
+                        if (typeof item.ordStatus !== 'undefined' && item.ordStatus === 'Canceled') {
+                            body = {
+                                order: item,
+                                isClone: true,
+                            };
+                            if (!body || _.isEmpty(body)) body = '';
+                            else if (_.isObject(body)) body = JSON.stringify(body);
+                            console.log('clone to', account1.id, body);
 
-                        const requestOptions = {
-                            headers: headers,
-                            url: 'http://127.0.0.1:3000/rest/order',
-                            method: DELETE,
-                            body: body
-                        };
-                        request(requestOptions);
+                            const requestOptions = {
+                                headers: headers,
+                                url: 'http://127.0.0.1:3000/rest/order',
+                                method: DELETE,
+                                body: body
+                            };
+                            request(requestOptions);
+                        } else if (typeof item.orderQty !== 'undefined') {
+                            body = {
+                                orderID: item.orderID,
+                                orderQty: item.orderQty,
+                                isClone: true,
+                            };
+                            if (!body || _.isEmpty(body)) body = '';
+                            else if (_.isObject(body)) body = JSON.stringify(body);
+                            console.log('clone to', account1.id, body);
+
+                            const requestOptions = {
+                                headers: headers,
+                                url: 'http://127.0.0.1:3000/rest/order',
+                                method: PUT,
+                                body: body
+                            };
+                            request(requestOptions);
+                        } else if (typeof item.price !== 'undefined') {
+                            body = {
+                                orderID: item.orderID,
+                                price: item.price,
+                                isClone: true,
+                            };
+                            if (!body || _.isEmpty(body)) body = '';
+                            else if (_.isObject(body)) body = JSON.stringify(body);
+                            console.log('clone to', account1.id, body);
+
+                            const requestOptions = {
+                                headers: headers,
+                                url: 'http://127.0.0.1:3000/rest/order',
+                                method: PUT,
+                                body: body
+                            };
+                            request(requestOptions);
+                        } else if (typeof item.pegOffsetValue !== 'undefined') {
+                            body = {
+                                orderID: item.orderID,
+                                pegOffsetValue: item.pegOffsetValue,
+                                isClone: true,
+                            };
+                            if (!body || _.isEmpty(body)) body = '';
+                            else if (_.isObject(body)) body = JSON.stringify(body);
+                            console.log('clone to', account1.id, body);
+
+                            const requestOptions = {
+                                headers: headers,
+                                url: 'http://127.0.0.1:3000/rest/order',
+                                method: PUT,
+                                body: body
+                            };
+                            request(requestOptions);
+                        }
                     }
                 }
             }
