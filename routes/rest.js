@@ -28,12 +28,13 @@ router.post('/order', function (req, res, next) {
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const order = params.order;
+    const isClone = params.isClone;
     console.log('rest-order post', testnet, apiKeyID, apiKeySecret, JSON.stringify(order));
 
     const bitmexApi = new BitMEXApi(testnet, apiKeyID, apiKeySecret);
 
     const orderID = order.orderID.length > 36 ? order.orderID.substr(order.orderID.length - 36, 36) : order.orderID;
-    let data = {
+    let body = {
         "symbol": order.symbol,
         "side": order.side,
         "simpleOrderQty": order.simpleOrderQty,
@@ -50,12 +51,40 @@ router.post('/order', function (req, res, next) {
         "execInst": order.execInst,
         "contingencyType": order.contingencyType,
         // "text": order.orderID,
-        "text": orderID,
+        "text": !!isClone ? orderID : order.text,
         // "text": order.text,
     };
     console.log('post', orderID, orderID.length);
-    bitmexApi.order(POST, data, (data) => {
-        res.status(200).send(data);
+    bitmexApi.order(GET, {}, (data) => {
+        // res.status(200).send({data});
+        if (!data || data.length === 0) {
+            console.log('no order', isClone);
+            bitmexApi.order(POST, body, (data) => {
+                res.status(200).send(data);
+            }, (error) => {
+                res.status(500).send(error);
+            });
+            return;
+        }
+        let flag = true;
+        if (isClone) {
+            for (let item of data) {
+                if (item.text.includes(order.orderID)) {
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        console.log('cloned', isClone, flag);
+        if (flag) {
+            bitmexApi.order(POST, body, (data) => {
+                res.status(200).send(data);
+            }, (error) => {
+                res.status(500).send(error);
+            });
+        } else {
+            res.status(200).send({});
+        }
     }, (error) => {
         res.status(500).send(error);
     });
@@ -69,37 +98,51 @@ router.delete('/order', function (req, res, next) {
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const order = params.order;
+    const isClone = params.isClone;
 
     const bitmexApi = new BitMEXApi(testnet, apiKeyID, apiKeySecret);
     const filter = JSON.stringify({
         // text: '*' + order.orderID
     });
     console.log('rest-order delete', testnet, apiKeyID, apiKeySecret, filter);
-    bitmexApi.order(GET, {filter: filter}, (data) => {
-        // res.status(200).send({data});
-        if (!data || data.length === 0) {
-            console.log('rest-order delete', testnet, apiKeyID, apiKeySecret, JSON.stringify(data));
-            res.status(200).send({});
-            return;
-        }
-        for (let item of data) {
-            if (!item.text.includes(order.orderID)) continue;
+    if (isClone) {
+        bitmexApi.order(GET, {filter: filter}, (data) => {
+            // res.status(200).send({data});
+            if (!data || data.length === 0) {
+                console.log('rest-order delete', testnet, apiKeyID, apiKeySecret, JSON.stringify(data));
+                res.status(200).send({});
+                return;
+            }
+            for (let item of data) {
+                if (!item.text.includes(order.orderID)) continue;
 
-            // const item = data[0];
-            let body = {
-                "orderID": item.orderID,
-                // "clOrdID": item.clOrdID,
-                // "text": item.text,
-            };
-            bitmexApi.order(DELETE, body, (data) => {
-                res.status(200).send(data);
-            }, (error) => {
-                res.status(500).send(error);
-            });
-        }
-    }, (error) => {
-        res.status(500).send(error);
-    });
+                // const item = data[0];
+                let body = {
+                    "orderID": item.orderID,
+                    // "clOrdID": item.clOrdID,
+                    // "text": item.text,
+                };
+                bitmexApi.order(DELETE, body, (data) => {
+                    res.status(200).send(data);
+                }, (error) => {
+                    res.status(500).send(error);
+                });
+            }
+        }, (error) => {
+            res.status(500).send(error);
+        });
+    } else {
+        let body = {
+            "orderID": order.orderID,
+            // "clOrdID": item.clOrdID,
+            // "text": item.text,
+        };
+        bitmexApi.order(DELETE, body, (data) => {
+            res.status(200).send(data);
+        }, (error) => {
+            res.status(500).send(error);
+        });
+    }
 });
 
 router.delete('/orderAll', function (req, res, next) {

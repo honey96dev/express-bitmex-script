@@ -16,6 +16,78 @@ let service = {
 
         return crypto.createHmac('sha256', secret).update(verb + url + nonce + data).digest('hex');
     },
+
+    renewSocket: (account) => {
+        console.warn('renewSocket', account.id);
+        if (account.renewSocketTimeoutId) {
+            clearTimeout(account.renewSocketTimeoutId);
+        }
+        let socket = new WebSocket(Boolean(account.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+            retryCount: 10, // default is 2
+            reconnectInterval: 1 // default is 5
+        });
+
+        socket.on('connect', () => {
+            account.rest.getTimestamp((result) => {
+                const expires = parseInt(result / 1000 + 5);
+                const signature = service.signMessage(account.apiKeySecret, 'GET', '/realtime', expires);
+
+                socket.send(JSON.stringify({
+                    op: "authKeyExpires",
+                    args: [account.apiKeyID, expires, signature],
+                }));
+
+                for (let subscribe of account.subscribes) {
+                    socket.send(subscribe);
+                }
+
+                if (!!account.socket) {
+                    account.socket.destroy();
+                }
+                account.socket = socket;
+                account.renewSocketTimeoutId = setTimeout(service.renewSocket, 300000, account);
+            });
+            // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
+            //
+            // request(url, (error, response, body) => {
+            //     if (!response || response.statusCode !== 200) {
+            //         return;
+            //     }
+            //     const result = JSON.parse(body);
+            //
+            //
+            // });
+        });
+
+        socket.on('message', (data) => {
+            data = JSON.parse(data);
+            if (!!data.table) {
+                const table = data.table;
+                if (table === 'order') {
+                    service.onWsOrder(data.action, data.data, account);
+                } else if (table === 'orderBookL2_25') {
+                    service.onWsOrderBookL2_25(data.action, data.data, account);
+                } else if (table === 'position') {
+                    service.onWsPosition(data.action, data.data, account);
+                }
+            }
+        });
+
+        socket.on('reconnect', (data) => {
+            console.warn('reconnect', account.id, data);
+            // account.socket.start();
+        });
+
+        socket.on('destroyed', (data) => {
+            console.warn('destroyed', account.id, data);
+        });
+
+        if (account.isParent) {
+            socket.start();
+        }
+
+
+    },
     //
     // init: (configs) => {
     //     service.accounts = [];
@@ -24,24 +96,19 @@ let service = {
     //             id: item.id,
     //             isParent: Boolean(item.isParent),
     //             rest: new BitMEXApi(Boolean(item.testnet), item.apiKeyID, item.apiKeySecret),
-    //             // socket: new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
-    //             //     retryCount: 10, // default is 2
-    //             //     reconnectInterval: 1 // default is 5
-    //             // }),
-    //             socket: ioCliect(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
-    //                 forceNew: true,
-    //                 // path: '/realtime',
-    //                 autoConnect: false,
-    //             }),
+    //             socket: undefined,
     //             subscribes: [],
     //             testnet: Boolean(item.testnet),
     //             apiKeyID: item.apiKeyID,
     //             apiKeySecret: item.apiKeySecret,
     //         };
-    //         service.accounts.push(account);
+    //
+    //         account.socket = new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+    //             retryCount: 10, // default is 2
+    //             reconnectInterval: 1 // default is 5
+    //         });
     //
     //         account.socket.on('connect', () => {
-    //             console.warn('connect', account.id, data);
     //             account.rest.getTimestamp((result) => {
     //                 const expires = parseInt(result / 1000 + 5);
     //                 const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
@@ -81,15 +148,6 @@ let service = {
     //             }
     //         });
     //
-    //         account.socket.on('disconnect', (reason) => {
-    //             if (reason === 'io server disconnect') {
-    //                 // the disconnection was initiated by the server, you need to reconnect manually
-    //                 console.warn('disconnect', account.id, data);
-    //                 account.socket.connect();
-    //             }
-    //             // else the socket will automatically try to reconnect
-    //         });
-    //
     //         account.socket.on('reconnect', (data) => {
     //             console.warn('reconnect', account.id, data);
     //             // account.socket.start();
@@ -98,14 +156,14 @@ let service = {
     //         account.socket.on('destroyed', (data) => {
     //             console.warn('destroyed', account.id, data);
     //         });
+    //
+    //         service.accounts.push(account);
     //         if (account.isParent) {
-    //             console.warn('account.socket.open()', account.id);
-    //             account.socket.open();
+    //             account.socket.start();
     //         }
     //     }
     // },
-
-
+    //
     init: (configs) => {
         service.accounts = [];
         for (let item of configs) {
@@ -113,68 +171,75 @@ let service = {
                 id: item.id,
                 isParent: Boolean(item.isParent),
                 rest: new BitMEXApi(Boolean(item.testnet), item.apiKeyID, item.apiKeySecret),
-                socket: new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
-                    retryCount: 10, // default is 2
-                    reconnectInterval: 1 // default is 5
-                }),
+                socket: undefined,
                 subscribes: [],
                 testnet: Boolean(item.testnet),
                 apiKeyID: item.apiKeyID,
                 apiKeySecret: item.apiKeySecret,
             };
+
             service.accounts.push(account);
 
-            account.socket.on('connect', () => {
-                account.rest.getTimestamp((result) => {
-                    const expires = parseInt(result / 1000 + 5);
-                    const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
-
-                    account.socket.send(JSON.stringify({
-                        op: "authKeyExpires",
-                        args: [item.apiKeyID, expires, signature],
-                    }));
-
-                    for (let subscribe of account.subscribes) {
-                        account.socket.send(subscribe);
-                    }
-                });
-                // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
-                //
-                // request(url, (error, response, body) => {
-                //     if (!response || response.statusCode !== 200) {
-                //         return;
-                //     }
-                //     const result = JSON.parse(body);
-                //
-                //
-                // });
-            });
-
-            account.socket.on('message', (data) => {
-                data = JSON.parse(data);
-                if (!!data.table) {
-                    const table = data.table;
-                    if (table === 'order') {
-                        service.onWsOrder(data.action, data.data, account);
-                    } else if (table === 'orderBookL2_25') {
-                        service.onWsOrderBookL2_25(data.action, data.data, account);
-                    } else if (table === 'position') {
-                        service.onWsPosition(data.action, data.data, account);
-                    }
-                }
-            });
-
-            account.socket.on('reconnect', (data) => {
-                console.warn('reconnect', account.id, data);
-                // account.socket.start();
-            });
-
-            account.socket.on('destroyed', (data) => {
-                console.warn('destroyed', account.id, data);
-            });
-            if (account.isParent) {
-                account.socket.start();
-            }
+            account.renewSocketTimeoutId = setTimeout(service.renewSocket, 0, account);
+            //
+            // account.socket = new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+            //     retryCount: 10, // default is 2
+            //     reconnectInterval: 1 // default is 5
+            // });
+            //
+            // account.socket.on('connect', () => {
+            //     account.rest.getTimestamp((result) => {
+            //         const expires = parseInt(result / 1000 + 5);
+            //         const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
+            //
+            //         account.socket.send(JSON.stringify({
+            //             op: "authKeyExpires",
+            //             args: [item.apiKeyID, expires, signature],
+            //         }));
+            //
+            //         for (let subscribe of account.subscribes) {
+            //             account.socket.send(subscribe);
+            //         }
+            //     });
+            //     // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
+            //     //
+            //     // request(url, (error, response, body) => {
+            //     //     if (!response || response.statusCode !== 200) {
+            //     //         return;
+            //     //     }
+            //     //     const result = JSON.parse(body);
+            //     //
+            //     //
+            //     // });
+            // });
+            //
+            //
+            // account.socket.on('message', (data) => {
+            //     data = JSON.parse(data);
+            //     if (!!data.table) {
+            //         const table = data.table;
+            //         if (table === 'order') {
+            //             service.onWsOrder(data.action, data.data, account);
+            //         } else if (table === 'orderBookL2_25') {
+            //             service.onWsOrderBookL2_25(data.action, data.data, account);
+            //         } else if (table === 'position') {
+            //             service.onWsPosition(data.action, data.data, account);
+            //         }
+            //     }
+            // });
+            //
+            // account.socket.on('reconnect', (data) => {
+            //     console.warn('reconnect', account.id, data);
+            //     // account.socket.start();
+            // });
+            //
+            // account.socket.on('destroyed', (data) => {
+            //     console.warn('destroyed', account.id, data);
+            // });
+            //
+            // if (account.isParent) {
+            //     account.socket.start();
+            // }
         }
     },
 
@@ -217,7 +282,7 @@ let service = {
             args: 'orderBookL2_25:' + symbol,
         });
         for (let account of service.accounts) {
-            if (account.socket.isConnected) {
+            if (!!account.socket && account.socket.isConnected) {
                 account.socket.send(query);
             } else {
                 account.subscribes.push(query);
@@ -231,7 +296,7 @@ let service = {
             args: 'execution:' + symbol,
         });
         for (let account of service.accounts) {
-            if (account.socket.isConnected) {
+            if (!!account.socket && account.socket.isConnected) {
                 account.socket.send(query);
             } else {
                 account.subscribes.push(query);
@@ -245,7 +310,7 @@ let service = {
             args: 'order:' + symbol,
         });
         for (let account of service.accounts) {
-            if (account.socket.isConnected) {
+            if (!!account.socket && account.socket.isConnected) {
                 account.socket.send(query);
             } else {
                 account.subscribes.push(query);
@@ -259,7 +324,7 @@ let service = {
             args: 'position:' + symbol,
         });
         for (let account of service.accounts) {
-            if (account.socket.isConnected) {
+            if (!!account.socket && account.socket.isConnected) {
                 account.socket.send(query);
             } else {
                 account.subscribes.push(query);
@@ -288,6 +353,7 @@ let service = {
                     for (let item of data) {
                         body = {
                             order: item,
+                            isClone: true,
                         };
                         if (!body || _.isEmpty(body)) body = '';
                         else if (_.isObject(body)) body = JSON.stringify(body);
@@ -322,6 +388,7 @@ let service = {
                         if (item.ordStatus !== 'Canceled') continue;
                         body = {
                             order: item,
+                            isClone: true,
                         };
                         if (!body || _.isEmpty(body)) body = '';
                         else if (_.isObject(body)) body = JSON.stringify(body);
