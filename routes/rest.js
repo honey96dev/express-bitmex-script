@@ -83,7 +83,7 @@ router.delete('/order', function (req, res, next) {
             return;
         }
         for (let item of data) {
-            if (!item.text.endsWith(order.orderID)) continue;
+            if (!item.text.includes(order.orderID)) continue;
 
             // const item = data[0];
             let body = {

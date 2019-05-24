@@ -3,8 +3,7 @@ import sprintfJs from 'sprintf-js';
 import WebSocket from 'ws-reconnect';
 import request from 'request';
 import crypto from 'crypto'
-import {BitMEXApi, GET, POST, PUT, DELETE} from '../core/BitmexApi';
-import config from "../core/config";
+import {BitMEXApi, DELETE, GET, POST, PUT} from '../core/BitmexApi';
 import _ from "lodash";
 
 let service = {
@@ -77,7 +76,7 @@ let service = {
 
             account.socket.on('reconnect', (data) => {
                 console.warn('reconnect', account.id, data);
-                // account.socket.start();
+                account.socket.start();
             });
 
             account.socket.on('destroyed', (data) => {
