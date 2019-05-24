@@ -1,6 +1,7 @@
 import dbConn from '../core/dbConn';
 import sprintfJs from 'sprintf-js';
 import WebSocket from 'ws-reconnect';
+import ioCliect from 'socket.io-client';
 import request from 'request';
 import crypto from 'crypto'
 import {BitMEXApi, DELETE, GET, POST, PUT} from '../core/BitmexApi';
@@ -15,6 +16,95 @@ let service = {
 
         return crypto.createHmac('sha256', secret).update(verb + url + nonce + data).digest('hex');
     },
+    //
+    // init: (configs) => {
+    //     service.accounts = [];
+    //     for (let item of configs) {
+    //         let account = {
+    //             id: item.id,
+    //             isParent: Boolean(item.isParent),
+    //             rest: new BitMEXApi(Boolean(item.testnet), item.apiKeyID, item.apiKeySecret),
+    //             // socket: new WebSocket(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+    //             //     retryCount: 10, // default is 2
+    //             //     reconnectInterval: 1 // default is 5
+    //             // }),
+    //             socket: ioCliect(Boolean(item.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+    //                 forceNew: true,
+    //                 // path: '/realtime',
+    //                 autoConnect: false,
+    //             }),
+    //             subscribes: [],
+    //             testnet: Boolean(item.testnet),
+    //             apiKeyID: item.apiKeyID,
+    //             apiKeySecret: item.apiKeySecret,
+    //         };
+    //         service.accounts.push(account);
+    //
+    //         account.socket.on('connect', () => {
+    //             console.warn('connect', account.id, data);
+    //             account.rest.getTimestamp((result) => {
+    //                 const expires = parseInt(result / 1000 + 5);
+    //                 const signature = service.signMessage(item.apiKeySecret, 'GET', '/realtime', expires);
+    //
+    //                 account.socket.send(JSON.stringify({
+    //                     op: "authKeyExpires",
+    //                     args: [item.apiKeyID, expires, signature],
+    //                 }));
+    //
+    //                 for (let subscribe of account.subscribes) {
+    //                     account.socket.send(subscribe);
+    //                 }
+    //             });
+    //             // const url = item.testnet ? 'https://testnet.bitmex.com/api/v1' : 'https://www.bitmex.com/api/v1';
+    //             //
+    //             // request(url, (error, response, body) => {
+    //             //     if (!response || response.statusCode !== 200) {
+    //             //         return;
+    //             //     }
+    //             //     const result = JSON.parse(body);
+    //             //
+    //             //
+    //             // });
+    //         });
+    //
+    //         account.socket.on('message', (data) => {
+    //             data = JSON.parse(data);
+    //             if (!!data.table) {
+    //                 const table = data.table;
+    //                 if (table === 'order') {
+    //                     service.onWsOrder(data.action, data.data, account);
+    //                 } else if (table === 'orderBookL2_25') {
+    //                     service.onWsOrderBookL2_25(data.action, data.data, account);
+    //                 } else if (table === 'position') {
+    //                     service.onWsPosition(data.action, data.data, account);
+    //                 }
+    //             }
+    //         });
+    //
+    //         account.socket.on('disconnect', (reason) => {
+    //             if (reason === 'io server disconnect') {
+    //                 // the disconnection was initiated by the server, you need to reconnect manually
+    //                 console.warn('disconnect', account.id, data);
+    //                 account.socket.connect();
+    //             }
+    //             // else the socket will automatically try to reconnect
+    //         });
+    //
+    //         account.socket.on('reconnect', (data) => {
+    //             console.warn('reconnect', account.id, data);
+    //             // account.socket.start();
+    //         });
+    //
+    //         account.socket.on('destroyed', (data) => {
+    //             console.warn('destroyed', account.id, data);
+    //         });
+    //         if (account.isParent) {
+    //             console.warn('account.socket.open()', account.id);
+    //             account.socket.open();
+    //         }
+    //     }
+    // },
+
 
     init: (configs) => {
         service.accounts = [];
@@ -76,7 +166,7 @@ let service = {
 
             account.socket.on('reconnect', (data) => {
                 console.warn('reconnect', account.id, data);
-                account.socket.start();
+                // account.socket.start();
             });
 
             account.socket.on('destroyed', (data) => {
@@ -179,7 +269,7 @@ let service = {
 
 
     onWsOrder: (action, data, account) => {
-        console.log('onWsOrder', account.id, action, JSON.stringify(data));
+        console.log('onWsOrder', new Date(), account.id, action, JSON.stringify(data));
         if (action === 'insert') {
             const rest = account.rest;
             if (account.isParent) {
@@ -255,7 +345,7 @@ let service = {
     },
 
     onWsPosition: (action, data, account) => {
-        console.log('onWsPosition', account.id, action, JSON.stringify(data));
+        console.log('onWsPosition', new Date(), account.id, action, JSON.stringify(data));
     },
 };
 module.exports = {BitMEXService: service, GET, POST, PUT, DELETE};
