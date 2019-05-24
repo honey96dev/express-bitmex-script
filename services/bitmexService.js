@@ -20,7 +20,7 @@ let service = {
     renewSocket: (account) => {
         console.warn('renewSocket', account.id);
         const timestamp = new Date().getTime();
-        if (account.lastTimestamp > timestamp - 60000) {
+        if (account.lastTimestamp > timestamp - 30000) {
             console.warn('renewSocket-still alive', account.id);
             return;
         }
@@ -352,16 +352,16 @@ let service = {
         if (action === 'insert') {
             const rest = account.rest;
             if (account.isParent) {
-                for (let item of service.accounts) {
-                    if (item.isParent) continue;
+                for (let account1 of service.accounts) {
+                    if (account1.isParent) continue;
 
                     const headers = {
                         'content-type': 'application/json',
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
-                        'testnet': item.testnet,
-                        'apikeyid': item.apiKeyID,
-                        'apikeysecret': item.apiKeySecret,
+                        'testnet': account1.testnet,
+                        'apikeyid': account1.apiKeyID,
+                        'apikeysecret': account1.apiKeySecret,
                     };
                     let body;
                     for (let item of data) {
@@ -371,7 +371,7 @@ let service = {
                         };
                         if (!body || _.isEmpty(body)) body = '';
                         else if (_.isObject(body)) body = JSON.stringify(body);
-                        console.log('clone to', item.id, body);
+                        console.log('clone to', account1.id, body);
 
                         const requestOptions = {
                             headers: headers,
@@ -386,16 +386,16 @@ let service = {
         } else if (action === 'update') {
             const rest = account.rest;
             if (account.isParent) {
-                for (let item of service.accounts) {
-                    if (item.isParent) continue;
+                for (let account1 of service.accounts) {
+                    if (account1.isParent) continue;
 
                     const headers = {
                         'content-type': 'application/json',
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
-                        'testnet': item.testnet,
-                        'apikeyid': item.apiKeyID,
-                        'apikeysecret': item.apiKeySecret,
+                        'testnet': account1.testnet,
+                        'apikeyid': account1.apiKeyID,
+                        'apikeysecret': account1.apiKeySecret,
                     };
                     let body;
                     for (let item of data) {
@@ -406,7 +406,7 @@ let service = {
                         };
                         if (!body || _.isEmpty(body)) body = '';
                         else if (_.isObject(body)) body = JSON.stringify(body);
-                        console.log('clone to', item.id, body);
+                        console.log('clone to', account1.id, body);
 
                         const requestOptions = {
                             headers: headers,
@@ -427,6 +427,45 @@ let service = {
 
     onWsPosition: (action, data, account) => {
         console.log('onWsPosition', new Date(), account.id, action, JSON.stringify(data));
+        if (action === 'insert') {
+
+        } else if (action === 'update') {
+            const rest = account.rest;
+            if (account.isParent) {
+                for (let account1 of service.accounts) {
+                    if (account1.isParent) continue;
+
+                    const headers = {
+                        'content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'testnet': account1.testnet,
+                        'apikeyid': account1.apiKeyID,
+                        'apikeysecret': account1.apiKeySecret,
+                    };
+                    let body;
+                    for (let item of data) {
+                        if (!!item.leverage) {
+                            body = {
+                                symbol: item.symbol,
+                                leverage: !!item.crossMargin ? 0 : item.leverage,
+                            };
+                            if (!body || _.isEmpty(body)) body = '';
+                            else if (_.isObject(body)) body = JSON.stringify(body);
+                            console.log('clone to', account1.id, body);
+
+                            const requestOptions = {
+                                headers: headers,
+                                url: 'http://127.0.0.1:3000/rest/positionLeverage',
+                                method: POST,
+                                body: body
+                            };
+                            request(requestOptions);
+                        }
+                    }
+                }
+            }
+        }
     },
 };
 module.exports = {BitMEXService: service, GET, POST, PUT, DELETE};

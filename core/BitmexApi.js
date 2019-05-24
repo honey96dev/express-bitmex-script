@@ -25,6 +25,7 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
     const urlOrderClosePosition = '/order/closePosition';
     const urlOrderBookL2 = '/orderBook/L2';
     const urlPosition = '/position';
+    const urlPositionLeverage = '/position/leverage';
     const urlTradeBucketed = '/trade/bucketed';
 
     this.signMessage = (secret, verb, url, nonce, data) => {
@@ -152,6 +153,10 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
 
     this.position = (method, data, onFulfilled, onRejected) => {
         this.request(method, urlPosition, data, true, onFulfilled, onRejected);
+    };
+
+    this.positionLeverage = (data, onFulfilled, onRejected) => {
+        this.request(POST, urlPositionLeverage, data, true, onFulfilled, onRejected);
     };
 
     this.tradeBucketed = (data, onFulfilled, onRejected) => {

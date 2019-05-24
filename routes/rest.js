@@ -187,6 +187,35 @@ router.get('/position', function (req, res, next) {
     });
 });
 
+router.post('/positionLeverage', function (req, res, next) {
+    const headers = req.headers;
+    const params = req.body;
+
+    const testnet = Boolean(headers.testnet);
+    const apiKeyID = headers.apikeyid;
+    const apiKeySecret = headers.apikeysecret;
+    const symbol = params.symbol;
+    const leverage = params.leverage;
+    const body = {
+        symbol: symbol,
+        leverage: leverage,
+    };
+    if (!symbol || typeof leverage === 'undefined') {
+        res.status(400).send(body);
+        return;
+    }
+
+    console.log('rest-positionLeverage post', testnet, apiKeyID, apiKeySecret, JSON.stringify(body));
+    const bitmexApi = new BitMEXApi(testnet, apiKeyID, apiKeySecret);
+    bitmexApi.positionLeverage(body, (data) => {
+        // console.log('rest-positionLeverage post', JSON.stringify(data));
+        res.status(200).send(data);
+    }, (error) => {
+        // console.warn('rest-positionLeverage post', JSON.stringify(error));
+        res.status(500).send(error);
+    });
+});
+
 module.exports = router;
 
 //
