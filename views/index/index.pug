@@ -1,0 +1,24 @@
+extends ./layout
+
+block mainContent
+    #kt_content.kt-content.kt-grid__item.kt-grid__item--fluid
+        .kt-portlet.kt-portlet--mobile
+            .kt-portlet__head.kt-portlet__head--lg
+                .kt-portlet__head-label
+                    span.kt-portlet__head-icon
+                        i.fa.fa-city.margin-auto
+                    h3.kt-portlet__head-title
+                        | Dashboard
+            .kt-portlet__body
+                .kt-form.kt-form--label-right.kt-margin-t-20.kt-margin-b-10
+                    .row.align-items-center
+                        .col-xl-8.order-2.order-xl-1
+                            .row.align-items-center
+                                .col-md-6.kt-margin-b-20-tablet-and-mobile
+                                    .kt-input-icon.kt-input-icon--left
+                                        input#generalSearch.form-control(type='text', placeholder='Search...')
+                                        span.kt-input-icon__icon.kt-input-icon__icon--left
+                                            span
+                                                i.la.la-search
+            .kt-portlet__body.kt-portlet__body--fit
+                #auto_column_hide.kt-datatable
