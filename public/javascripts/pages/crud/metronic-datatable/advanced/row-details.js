@@ -10,12 +10,12 @@ var KTDatatableAutoColumnHideDemo = function() {
 		var datatable = $('.kt-datatable').KTDatatable({
 			// datasource definition
 			data: {
-				type: 'remote',
-				source: {
-					read: {
-						url: 'https://keenthemes.com/metronic/themes/themes/metronic/dist/preview/inc/api/datatables/demos/default.php',
-					},
-				},
+				// type: 'remote',
+				// source: {
+				// 	read: {
+				// 		url: 'https://keenthemes.com/metronic/themes/themes/metronic/dist/preview/inc/api/datatables/demos/default.php',
+				// 	},
+				// },
 				pageSize: 10,
 				saveState: false,
 				serverPaging: true,
@@ -134,15 +134,16 @@ var KTDatatableAutoColumnHideDemo = function() {
 
 		});
 
-    $('#kt_form_status').on('change', function() {
-      datatable.search($(this).val().toLowerCase(), 'Status');
-    });
-
-    $('#kt_form_type').on('change', function() {
-      datatable.search($(this).val().toLowerCase(), 'Type');
-    });
-
-    $('#kt_form_status,#kt_form_type').selectpicker();
+		// $('#kt_form_status').on('change', function() {
+		//   datatable.search($(this).val().toLowerCase(), 'Status');
+		// });
+		//
+		// $('#kt_form_type').on('change', function() {
+		//   datatable.search($(this).val().toLowerCase(), 'Type');
+		// });
+		//
+		// $('#kt_form_status,#kt_form_type').selectpicker();
+		//
 
 	};
 

@@ -7,7 +7,14 @@ const router = express.Router();
 router.get('/', function (req, res, next) {
     res.render('index/index', {
         baseUrl: config.server.baseUrl,
-        scripts: ['javascripts/pages/crud/metronic-datatable/advanced/row-details.js',],
+        styles: [
+            '//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css',
+            'stylesheets/site/dashboard.css',
+        ],
+        scripts: [
+            '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+            'javascripts/site/dashboard.js',
+        ],
     });
     // res.render('index/index', {baseUrl: config.server.baseUrl});
 });

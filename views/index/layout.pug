@@ -48,10 +48,12 @@ html(lang='en')
         link(href!='stylesheets/skins/brand/light.css', rel='stylesheet', type='text/css')
         link(href!='stylesheets/skins/aside/light.css', rel='stylesheet', type='text/css')
         link(rel='shortcut icon', href!='images/favicon.ico')
+        for style in styles
+            link(href!=style, rel='stylesheet')
     body.kt-quick-panel--right.kt-demo-panel--right.kt-offcanvas-panel--right.kt-header--fixed.kt-header-mobile--fixed.kt-subheader--fixed.kt-subheader--enabled.kt-subheader--solid.kt-aside--enabled.kt-aside--fixed.kt-page--loading
         #kt_header_mobile.kt-header-mobile.kt-header-mobile--fixed
             .kt-header-mobile__logo
-                a(href!='#')
+                a(href!=baseUrl + 'account/info')
                     img.kt-aside__logo-image(alt='Logo', style='margin-top: 1rem;', src!='images/logo-def2.png')
             .kt-header-mobile__toolbar
                 button#kt_aside_mobile_toggler.kt-header-mobile__toggler.kt-header-mobile__toggler--left
@@ -65,13 +67,13 @@ html(lang='en')
                 #kt_aside.kt-aside.kt-aside--fixed.kt-grid__item.kt-grid.kt-grid--desktop.kt-grid--hor-desktop
                     #kt_aside_brand.kt-aside__brand.kt-grid__item
                         .kt-aside__brand-logo
-                            a(href!='#')
+                            a(href!=baseUrl)
                                 img.kt-aside__logo-image(alt='Logo', src!='images/logo-def2.png')
                     #kt_aside_menu_wrapper.kt-aside-menu-wrapper.kt-grid__item.kt-grid__item--fluid
                         #kt_aside_menu.kt-aside-menu(data-ktmenu-vertical='1', data-ktmenu-scroll='1', data-ktmenu-dropdown-timeout='500')
                             ul.kt-menu__nav
                                 li.kt-menu__item(aria-haspopup='true')
-                                    a.kt-menu__link(href!='#')
+                                    a.kt-menu__link(href!=baseUrl)
                                         span.kt-menu__link-icon
                                             i.fa.fa-city.margin-auto
                                         span.kt-menu__link-text Dashboard
@@ -79,12 +81,12 @@ html(lang='en')
                                     h4.kt-menu__section-text Account
                                     i.kt-menu__section-icon.flaticon-more-v2
                                 li.kt-menu__item(aria-haspopup='true')
-                                    a.kt-menu__link(target='_blank', href!='https://keenthemes.com/metronic/preview/demo1/builder.html')
+                                    a.kt-menu__link(href!=baseUrl + 'account/info')
                                         span.kt-menu__link-icon
                                             i.fa.fa-info-circle.margin-auto
                                         span.kt-menu__link-text Information
                                 li.kt-menu__item(aria-haspopup='true')
-                                    a.kt-menu__link(target='_blank', href!='https://keenthemes.com/metronic/preview/demo1/builder.html')
+                                    a.kt-menu__link(href!=baseUrl + 'account/manage')
                                         span.kt-menu__link-icon
                                             i.fa.fa-user.margin-auto
                                         span.kt-menu__link-text Management
