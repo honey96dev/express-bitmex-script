@@ -20,12 +20,13 @@ let service = {
     renewSocket: (account) => {
         console.warn('renewSocket', account.id);
         const timestamp = new Date().getTime();
+        if (account.renewSocketTimeoutId) {
+            clearTimeout(account.renewSocketTimeoutId);
+        }
+        account.renewSocketTimeoutId = setTimeout(service.renewSocket, 30000, account);
         if (account.lastTimestamp > timestamp - 30000) {
             console.warn('renewSocket-still alive', account.id);
             return;
-        }
-        if (account.renewSocketTimeoutId) {
-            clearTimeout(account.renewSocketTimeoutId);
         }
         let socket = new WebSocket(Boolean(account.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
             retryCount: 2, // default is 2
@@ -99,7 +100,7 @@ let service = {
             account.socket = socket;
         }
 
-        account.renewSocketTimeoutId = setTimeout(service.renewSocket, 30000, account);
+        // account.renewSocketTimeoutId = setTimeout(service.renewSocket, 30000, account);
     },
     //
     // init: (configs) => {

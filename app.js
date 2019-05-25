@@ -26,10 +26,11 @@ app.use(logger('dev'));
 app.use(cors());
 app.use(cookieParser());
 app.use(session({
+    key: config.session.key,
     secret: config.session.secret,
     resave: false,
     saveUninitialized: true,
-    store: new MySQLStore(config.mysql)
+    store: new MySQLStore(config.mysql),
 }));
 // app.use('/api', expressJwt({secret: core.session.secret})
 //     .unless({
@@ -40,20 +41,49 @@ app.use(session({
 //     }));
 
 function requiresLogin(req, res, next) {
-    return next();
-    if (req.session && req.session.userId) {
+    if (req.session && req.session.user && req.session.user.id) {
         return next();
     } else {
         res.redirect('/users');
     }
 }
-app.use('/users', usersRouter);
+function alreadyLogin(req, res, next) {
+    // console.log('alreadyLogin', req.url);
+    if (req.url === '/logout') {
+        return next();
+    }
+    if (req.session && req.session.user && req.session.user.id) {
+        res.redirect('/');
+    } else {
+        return next();
+    }
+}
 app.use('/rest', restRouter);
+app.use('/users', alreadyLogin, usersRouter);
 app.use('/', requiresLogin, indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
+// app.use(function (req, res, next) {
+//     next(createError(404));
+// });
+
+app.use(function(req, res, next){
+    res.status(404);
+
+    // respond with html page
+    if (req.accepts('html')) {
+        res.render('error/404', { baseUrl: config.server.baseUrl });
+        return;
+    }
+
+    // respond with json
+    if (req.accepts('json')) {
+        res.send({ error: 'Not found' });
+        return;
+    }
+
+    // default to plain-text. send()
+    res.type('txt').send('Not found');
 });
 
 // error handler
