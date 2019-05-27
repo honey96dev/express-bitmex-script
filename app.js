@@ -8,8 +8,9 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import config from './core/config';
-import indexRouter from './routes/index';
+import dashboardRouter from './routes/dashboard';
 import usersRouter from './routes/users';
+import accountsRouter from './routes/accounts';
 import restRouter from './routes/rest';
 
 const app = express();
@@ -60,7 +61,9 @@ function alreadyLogin(req, res, next) {
 }
 app.use('/rest', restRouter);
 app.use('/users', alreadyLogin, usersRouter);
-app.use('/', requiresLogin, indexRouter);
+app.use('/accounts', requiresLogin, accountsRouter);
+app.use('/', requiresLogin, dashboardRouter);
+app.use('/dashboard', requiresLogin, dashboardRouter);
 
 // catch 404 and forward to error handler
 // app.use(function (req, res, next) {

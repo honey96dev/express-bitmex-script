@@ -28104,7 +28104,7 @@ and (max-width: 768px) {
     -webkit-box-direction: normal;
     -ms-flex-direction: column;
     flex-direction: column;
-    padding: 25px;
+    padding: 1rem;
     border-radius: 4px;
 }
 

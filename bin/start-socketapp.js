@@ -14,11 +14,14 @@ let debug;
 if (cluster.isWorker) {
     debug = new debugLib('project:socket');
 
+    BitMEXService.initSocketIOClient();
+
     BitMEXService.initFromDb(config.bitmex.table, () => {
         BitMEXService.wsOrderBookL2_25('*');
         BitMEXService.wsOrder('*');
         BitMEXService.wsExecution('*');
         BitMEXService.wsPosition('*');
+        BitMEXService.wsWallet('*');
         // BitMEXService.restPosition(GET, {}, (data) => {
         //     console.log('restPosition', JSON.stringify(data));
         // }, (error) => {

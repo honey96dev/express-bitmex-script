@@ -1,11 +1,10 @@
 import app from '../app';
 import debugLib from 'debug';
 import http from 'http';
+import SocketIO from 'socket.io';
 import cluster from 'cluster';
+import SocketIOServerService from '../services/socketIOServerService';
 import config from '../core/config';
-import {BitMEXService, GET, POST, PUT, DELETE} from '../services/bitmexService';
-import request from 'request';
-import _ from "lodash";
 
 if (cluster.isMaster) {
     cluster.fork();
@@ -16,6 +15,7 @@ if (cluster.isMaster) {
 
 let debug;
 let server;
+let io;
 if (cluster.isWorker) {
     debug = new debugLib('project:server');
 
@@ -23,6 +23,17 @@ if (cluster.isWorker) {
     app.set('port', port);
 
     server = http.createServer(app);
+
+    io = SocketIO(server, {
+        // path: '/test',
+        serveClient: false,
+        // below are engine.IO options
+        // pingInterval: 10000,
+        // pingTimeout: 5000,
+        cookie: false,
+    });
+    SocketIOServerService.initSocketIOServer(io);
+
     server.listen(port);
     server.on('error', onError);
     server.on('listening', onListening);
