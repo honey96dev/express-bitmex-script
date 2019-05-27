@@ -3,6 +3,7 @@ module.exports = {
         port: 3000,
         baseUrl: 'http://127.0.0.1:3000/',
         name: 'Bitmex-script',
+        secret: 'bitmex_script@@'
     },
     mysql: {
         connectionLimit: 10,
@@ -13,6 +14,7 @@ module.exports = {
         port: 3306
     },
     session: {
+        key: 'bitmex_script',
         secret: 'bitmex_script@@'
     },
     bitmex: {
