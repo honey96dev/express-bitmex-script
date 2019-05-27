@@ -122,6 +122,10 @@ let service = {
             });
         });
     },
+
+    remakeAllSockets: () => {
+        service.ioServer.emit('remakeAllSocket');
+    }
 };
 
 module.exports = service;

@@ -3,6 +3,7 @@ import config from '../core/config';
 import dbConn from '../core/dbConn';
 import sprintfJs from 'sprintf-js';
 import bitmexAccounts from '../core/bitmexAccounts';
+import SocketIOServerService from '../services/socketIOServerService';
 
 const router = express.Router();
 
@@ -109,6 +110,7 @@ router.post('/save', (req, res, next) => {
                             message: 'Unknown error',
                         });
                     } else {
+                        SocketIOServerService.remakeAllSockets();
                         res.status(200).send({
                             result: 'success',
                             message: 'Successfully registered',
@@ -142,6 +144,7 @@ router.put('/save', (req, res, next) => {
                 message: 'Unknown error',
             });
         } else {
+            SocketIOServerService.remakeAllSockets();
             res.status(200).send({
                 result: 'success',
                 message: 'Successfully changed',
@@ -163,6 +166,7 @@ router.delete('/save', (req, res, next) => {
                 message: 'Unknown error',
             });
         } else {
+            SocketIOServerService.remakeAllSockets();
             res.status(200).send({
                 result: 'success',
                 message: 'Successfully deleted',
