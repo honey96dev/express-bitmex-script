@@ -20,22 +20,24 @@ router.get('/', function (req, res, next) {
     ];
 
     bitmexAccounts.accountList((data) => {
-        res.render('index/index', {
+        res.render('dashboard/index', {
             baseUrl: config.server.baseUrl,
+            uri: 'dashboard/index',
             styles: styles,
             scripts: scripts,
             bitmexAccounts: data,
         });
     }, (error) => {
-        res.render('index/index', {
+        res.render('dashboard/index', {
             baseUrl: config.server.baseUrl,
+            uri: 'dashboard/index',
             styles: styles,
             scripts: scripts,
             bitmexAccounts: [],
         });
     });
 
-    // res.render('index/index', {baseUrl: config.server.baseUrl});
+    // res.render('dashboard/index', {baseUrl: config.server.baseUrl});
 });
 
 router.post('/requestBitmexAccount', (req, res, next) => {

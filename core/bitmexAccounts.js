@@ -3,7 +3,7 @@ import dbConn from "./dbConn";
 
 let functions = {
     accountList: (onFulfilled, onRejected) => {
-        let sql = sprintfJs.sprintf("SELECT * FROM `bitmex_accounts`;");
+        let sql = sprintfJs.sprintf("SELECT (@row_number:=@row_number + 1) AS `row_num`, A.* FROM `bitmex_accounts` A, (SELECT @row_number:=-1) `tmp`;");
 
         dbConn.query(sql, null, (error, results, fields) => {
             if (error) {

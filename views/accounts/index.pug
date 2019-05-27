@@ -1,0 +1,84 @@
+extends ../layout
+
+block mainContent
+    #kt_content.kt-content.kt-grid__item.kt-grid__item--fluid
+        .kt-portlet.kt-portlet--mobile
+            .kt-portlet__head.kt-portlet__head--lg
+                .kt-portlet__head-label
+                    span.kt-portlet__head-icon
+                        i.fa.fa-user.margin-auto
+                    h3.kt-portlet__head-title
+                        | BitMEX Accounts
+
+            .kt-portlet__body
+                .kt-form.kt-form--label-right.kt-margin-t-0.kt-margin-b-0
+                    button#addBitmexAccount.btn.btn-bold.btn-label-brand.btn-sm(type='button', data-toggle='modal', data-target='#bitmexAccountDetailsModal')  Add new account
+
+            .kt-portlet__body.kt-portlet__body--fit
+                //#auto_column_hide.kt-datatable
+                table.display(id='accounts' class="mdl-data-table")
+                    thead
+                        tr
+                            th
+                            th Email
+                            th Name
+                            //th Testnet?
+                            //th ApiKeyID
+                            //th ApiKeySecret
+                            th Parent?
+                            th
+                            th
+                    //tbody
+                    //    for account in bitmexAccounts
+                    //        tr
+                    //            th
+                    //            th=account.email
+                    //            th=account.name
+                    //            //th=account.testnet
+                    //            //th=account.apiKeyID
+                    //            //th=account.apiKeySecret
+                    //            th=account.isParent ? 'Yes' : 'No'
+                    tfoot
+                        tr
+                            th
+                            th Email
+                            th Name
+                            //th Testnet?
+                            //th ApiKeyID
+                            //th ApiKeySecret
+                            th Parent?
+                            th
+                            th
+
+    #bitmexAccountDetailsModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='bitmexAccountDetailsModalLabel', aria-hidden='true')
+        .modal-dialog(role='document')
+            .modal-content
+                .modal-header
+                    h5.modal-title(style='margin-top: 0') BitMEX Account Details
+                    button.close(type='button', data-dismiss='modal', aria-label='Close')
+                form#bitmexAccountDetailsForm.modal-body(action='/accounts/save', data-method='', novalidate='novalidate')
+                    input#accountId.form-control(type='hidden', name='accountId')
+                    //.modal-body
+                    .form-group.account-details
+                        label Email
+                        input#email.form-control(type='email', name='email', placeholder='Enter email')
+                    .form-group.account-details
+                        label Name
+                        input#name.form-control(type='name', name='name', placeholder='Enter name')
+                    label.kt-checkbox.kt-checkbox--primary
+                        input#testnet(type='checkbox', name='testnet')
+                        |  Testnet?
+                        span
+                    .form-group.account-details
+                        label ApiKeyID
+                        input#apiKeyID.form-control(type='name', name='apiKeyID', placeholder='Enter ApiKeyID')
+                    .form-group.account-details
+                        label ApiKeySecret
+                        input#apiKeySecret.form-control(type='name', name='apiKeySecret', placeholder='Enter ApiKeySecret')
+                    label.kt-checkbox.kt-checkbox--primary
+                        input#isParent(type='checkbox', name='isParent')
+                        |  Parent?
+                        span
+                .modal-footer
+                    button#closeModal.btn.btn-secondary(type='button', name='closeModal', data-dismiss='modal') Close
+                    button#saveBitMEXAccount.btn.btn-primary(type='button', name='saveBitMEXAccount') Save

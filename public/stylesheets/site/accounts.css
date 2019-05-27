@@ -3,7 +3,7 @@ div.dataTables_wrapper {
 }
 
 .kt-portlet__body.kt-portlet__body--fit {
-    padding: 0 1rem 1rem 1rem !important;
+    padding: 1rem !important;
 }
 
 #position td {
@@ -12,4 +12,8 @@ div.dataTables_wrapper {
 
 thead, th {
     text-align: center !important;
+}
+
+.form-group.account-details {
+    margin-bottom: 1rem !important;
 }
