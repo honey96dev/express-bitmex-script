@@ -22,7 +22,7 @@ block mainContent
 
             .kt-portlet__body.kt-portlet__body--fit
                 //#auto_column_hide.kt-datatable
-                table.display(id='position' class="mdl-data-table")
+                table.mdl-data-table(id='positions')
                     thead
                         tr
                             //th
@@ -49,7 +49,7 @@ block mainContent
                             th Unrealised PNL
                             //th Unrealised PNL(ROE %)
                             th Realised PNL
-                table.display(id='active_orders' class="mdl-data-table")
+                table.mdl-data-table(id='active_orders')
                     thead
                         tr
                             th
@@ -61,6 +61,7 @@ block mainContent
                             th Order Value
                             th Fill Price
                             th Type
+                            th Status
                             th Time
                             th
                     tfoot
@@ -74,9 +75,10 @@ block mainContent
                             th Order Value
                             th Fill Price
                             th Type
+                            th Status
                             th Time
                             th
-                table.display(id='stop_orders' class="mdl-data-table")
+                table.mdl-data-table(id='stop_orders')
                     thead
                         tr
                             th
@@ -84,10 +86,11 @@ block mainContent
                             th Qty
                             th Order Price
                             th Filled
-                            th Remaining
-                            th Order Value
+                            th Stop Price
+                            th Triggering Price
                             th Fill Price
                             th Type
+                            th Status
                             th Time
                             th
                     tfoot
@@ -97,10 +100,11 @@ block mainContent
                             th Qty
                             th Order Price
                             th Filled
-                            th Remaining
-                            th Order Value
+                            th Stop Price
+                            th Triggering Price
                             th Fill Price
                             th Type
+                            th Status
                             th Time
                             th
                 //table.display(id='balance')

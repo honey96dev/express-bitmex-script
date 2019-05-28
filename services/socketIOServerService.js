@@ -1,3 +1,9 @@
+import config from '../core/config';
+import dbConn from '../core/dbConn';
+import sprintfJs from 'sprintf-js';
+import {DELETE} from "../core/BitmexApi";
+import request from "request";
+
 let service = {
     ioServer: undefined,
     // clients: [],
@@ -27,8 +33,8 @@ let service = {
             });
 
             socket.on('requestAccounts', (data) => {
-                console.log('requestAccounts', socket.id, data);
                 service.serveAccountIds[socket.id] = JSON.parse(data);
+                // console.warn('requestAccounts', socket.id, data, service.serveAccountIds);
             });
 
             socket.on('wallets?', (data) => {
@@ -43,7 +49,11 @@ let service = {
 
             socket.on('orders?', (data) => {
                 service.ordersClientSockets.push(socket);
-                // console.log(service.positionsClientSockets.length);
+                let clientIds = [];
+                for (let item of service.ordersClientSockets) {
+                    clientIds.push(item.id);
+                }
+                // console.log('service.ordersClientSockets', clientIds);
             });
 
             socket.on('wallets??', (data) => {
@@ -141,17 +151,60 @@ let service = {
             });
 
             socket.on('orders', (data) => {
-                // console.log(data);
+                let clientIds = [];
+                for (let item of service.ordersClientSockets) {
+                    clientIds.push(item.id);
+                }
+                // console.log('service.ordersClientSockets', clientIds);
                 service.orders = JSON.parse(data);
                 for (let client of service.ordersClientSockets) {
+                    // console.log('service.serveAccountIds', client.id, service.serveAccountIds[client.id]);
                     let ioData = {};
                     for (let accountId of service.serveAccountIds[client.id]) {
-                        if (typeof service.positions[accountId] !== 'undefined') {
+                        // console.log('service.orders', accountId, JSON.stringify(service.orders[accountId]));
+                        if (typeof service.orders[accountId] !== 'undefined') {
                             ioData[accountId] = service.orders[accountId];
                         }
                     }
+                    // console.log('orders emit', client.id, JSON.stringify(ioData));
                     client.emit('orders', ioData);
                 }
+            });
+
+            socket.on('cancelOrder', (data) => {
+                const params = JSON.parse(data);
+                let sql = sprintfJs.sprintf("SELECT * FROM `bitmex_accounts` WHERE BINARY `id` = '%d';", params.accountId);
+                dbConn.query(sql, null, (error, results, fields) => {
+                    if (error) {
+                        return;
+                    }
+                    if (typeof results === 'undefined' || results.length === 0) {
+                        return;
+                    }
+                    const apkKeySet = results[0];
+                    const headers = {
+                        'content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'testnet': apkKeySet.testnet,
+                        'apikeyid': apkKeySet.apiKeyID,
+                        'apikeysecret': apkKeySet.apiKeySecret,
+                    };
+                    const body = JSON.stringify({
+                        order: {
+                            orderID: params.orderID,
+                        },
+                    });
+                    const requestOptions = {
+                        headers: headers,
+                        url: config.server.baseUrl + 'rest/order',
+                        method: DELETE,
+                        body: body
+                    };
+                    request(requestOptions, undefined, (data) => {
+                        console.log(data);
+                    });
+                });
             });
         });
     },

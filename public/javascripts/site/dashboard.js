@@ -25,9 +25,9 @@ var Dashboard = function () {
             self.socket.emit('wallets??');
             self.socket.emit('positions??');
             self.socket.emit('orders??');
-            // self.socket.emit('wallets?');
-            // self.socket.emit('positions?');
-            // self.socket.emit('orders?');
+            self.socket.emit('wallets?');
+            self.socket.emit('positions?');
+            self.socket.emit('orders?');
             // console.log('select event', accountId);
             // $.ajax({
             //     method: 'POST',
@@ -38,57 +38,34 @@ var Dashboard = function () {
             // })
         });
 
-        this.table = $('#position').DataTable({
+        this.positionsTable = $('#positions').DataTable({
             data: [],
             columns: [
-                // {
-                //     // width: '3%',
-                //     className: 'details-control',
-                //     orderable: false,
-                //     data: null,
-                //     defaultContent: '<i class="fa fa-caret-right"></i>'
-                // },
                 {
-                    // width: '12%',
                     data: "symbol"
-                },
-                {
-                    // width: '10%',
+                }, {
                     data: "currentQty"
-                },
-                {
-                    // width: '10%',
+                }, {
                     data: "homeNotional",
                     render: $.fn.dataTable.render.number(',', '.', 4, ''),
-                },
-                {
+                }, {
                     data: "avgEntryPrice",
                     render: $.fn.dataTable.render.number(',', '.', 2, ''),
-                },
-                {
+                }, {
                     data: "markPrice",
                     render: $.fn.dataTable.render.number(',', '.', 2, ''),
-                },
-                {
+                }, {
                     data: "liquidationPrice",
                     render: $.fn.dataTable.render.number(',', '.', 2, ''),
-                },
-                {
+                }, {
                     data: "leverage",
-                    // render: $.fn.dataTable.render.number(',', '.', 2, ''),
-                },
-                {
-                    // width: '10%',
+                }, {
                     data: "unrealisedPnl",
-                    // render: $.fn.dataTable.render.number(',', '.', 4, ''),
                     render: function (data, type, row) {
                         return self.formatNumber(data / 100000000, 4);
                     }
-                },
-                {
-                    // width: '10%',
+                }, {
                     data: "realisedPnl",
-                    // render: $.fn.dataTable.render.number(',', '.', 4, ''),
                     render: function (data, type, row) {
                         return self.formatNumber(data / 100000000, 4);
                     }
@@ -101,26 +78,100 @@ var Dashboard = function () {
             },
         });
 
+        this.activeOrdersTable = $('#active_orders').DataTable({
+            data: [],
+            columns: [
+                {
+                    data: "side",
+                }, {
+                    data: "symbol",
+                }, {
+                    data: "orderQty",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "price",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "filledQty",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "remainingQty",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "orderValue",
+                    render: $.fn.dataTable.render.number(',', '.', 4, ''),
+                }, {
+                    data: "fillPrice",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "ordType",
+                }, {
+                    data: "ordStatus",
+                }, {
+                    data: "time",
+                }, {
+                    width: '5%',
+                    data: 'orderID',
+                    render: function (data, type, row) {
+                        return '<button class="btn btn-clean btn-sm btn-icon" onclick="dashboard.cancelOrder(\'' + data + '\')"><i class="fa fa-trash margin-auto"></i></button>';
+                    },
+                    orderable: false,
+                },
+            ],
+            order: [],
+            language: {
+                search: "",
+                sLengthMenu: "_MENU_",
+            },
+        });
 
-        // $('#position tbody').on('click', 'td', function () {
-        //     var tr = $(this).closest('tr');
-        //     var row = dashboard.table.row(tr);
-        //
-        //     if (row.child.isShown()) {
-        //         // This row is already open - close it
-        //         row.child.hide();
-        //         tr.find(">:first-child").html('<i class="fa fa-caret-right"></i>');
-        //     } else {
-        //         // Open this row
-        //         row.child(dashboard.formatRowDetail(row.data())).show();
-        //         tr.find(">:first-child").html('<i class="fa fa-caret-down"></i>');
-        //     }
-        // });
+        this.stopOrdersTable = $('#stop_orders').DataTable({
+            data: [],
+            columns: [
+                {
+                    data: "side",
+                }, {
+                    data: "symbol",
+                }, {
+                    data: "orderQty",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "price",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "filledQty",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "stopPx",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "triggeringPx",
+                    render: $.fn.dataTable.render.number(',', '.', 4, ''),
+                }, {
+                    data: "fillPrice",
+                    render: $.fn.dataTable.render.number(',', '.', 2, ''),
+                }, {
+                    data: "ordType",
+                }, {
+                    data: "ordStatus",
+                }, {
+                    data: "time",
+                }, {
+                    width: '5%',
+                    data: 'orderID',
+                    render: function (data, type, row) {
+                        return '<button class="btn btn-clean btn-sm btn-icon" onclick="dashboard.cancelOrder(\'' + data + '\')"><i class="fa fa-trash margin-auto"></i></button>';
+                    },
+                    orderable: false,
+                },
+            ],
+            order: [],
+            language: {
+                search: "",
+                sLengthMenu: "_MENU_",
+            },
+        });
 
-        // $('table.display').DataTable();
-        // setInterval(() => {
-        //     this.table.cell(0, 3).data(new Date().getTime() % 10000);
-        // }, 1000);
         this.socket = io('localhost:3000', {
             reconnection: true,
             reconnectionDelay: 2000,
@@ -160,14 +211,65 @@ var Dashboard = function () {
                 newData = value;
             });
 
-            this.table.clear();
-            this.table.rows.add(newData);
-            this.table.draw();
+            this.positionsTable.clear();
+            this.positionsTable.rows.add(newData);
+            this.positionsTable.draw();
         });
         this.socket.on('orders', (data) => {
-            console.log('socket-io', 'orders', data);
+            console.log('socket-io', 'orders', data);let newData = [];
+            Object.entries(data).forEach(entry => {
+                let key = entry[0];
+                let value = entry[1];
+                newData = value;
+            });
+
+            let activeOrders = [];
+            let stopOrders = [];
+            let order;
+            for (let item of newData) {
+                order = {
+                    side: item.side,
+                    symbol: item.symbol,
+                    orderQty: item.orderQty,
+                    price: !!item.price ? item.price : 'Market',
+                    filledQty: !!item.leavesQty ? item.orderQty - item.leavesQty : 0,
+                    remainingQty: !!item.leavesQty ? item.leavesQty : item.orderQty,
+                    stopPx: !!item.stopPx ? item.stopPx : 0,
+                    triggeringPx: 0,
+                    orderValue: 0,
+                    fillPrice: 0,
+                    ordType: item.ordType,
+                    ordStatus: item.ordStatus,
+                    time: item.timestamp,
+                    orderID: item.orderID,
+                }
+                if (!!item.stopPx) {
+                    stopOrders.push(order);
+                } else {
+                    activeOrders.push(order);
+                }
+            }
+            console.log('activeOrders', activeOrders);
+            console.log('stopOrders', stopOrders);
+            this.activeOrdersTable.clear();
+            this.activeOrdersTable.rows.add(activeOrders);
+            this.activeOrdersTable.draw();
+            this.stopOrdersTable.clear();
+            this.stopOrdersTable.rows.add(stopOrders);
+            this.stopOrdersTable.draw();
         });
     };
+
+    this.cancelOrder = function (orderID) {
+        let self = this;
+        const button = confirm('Really?');
+        if (button) {
+            this.socket.emit('cancelOrder', JSON.stringify({
+                accountId: self.accountId,
+                orderID: orderID,
+            }));
+        }
+    }
 };
 
 jQuery(document).ready(function () {

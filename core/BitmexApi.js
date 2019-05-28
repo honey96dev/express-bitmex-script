@@ -92,6 +92,10 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                         onFulfilled(result);
                     }
                 });
+            }, (error) => {
+                if (typeof onRejected === 'function') {
+                    onRejected(error);
+                }
             });
         } else {
             const headers = {

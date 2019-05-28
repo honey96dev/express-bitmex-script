@@ -496,7 +496,7 @@ let service = {
 
                             const requestOptions = {
                                 headers: headers,
-                                url: 'http://127.0.0.1:3000/rest/positionLeverage',
+                                url: config.server.baseUrl + 'rest/positionLeverage',
                                 method: POST,
                                 body: body
                             };
