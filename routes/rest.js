@@ -7,7 +7,10 @@ router.get('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.query;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const filter = params.filter;
@@ -24,7 +27,10 @@ router.put('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const orderID = params.orderID;
@@ -106,7 +112,10 @@ router.post('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const order = params.order;
@@ -175,7 +184,10 @@ router.delete('/order', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const order = params.order;
@@ -185,7 +197,6 @@ router.delete('/order', function (req, res, next) {
     const filter = JSON.stringify({
         // text: '*' + order.orderID
     });
-    // console.log('rest-order delete1', testnet, apiKeyID, apiKeySecret, isClone);
     // console.log('rest-order delete2');
     if (!!isClone) {
         // console.log('bitmex-order-delete -clone');
@@ -236,7 +247,10 @@ router.delete('/orderAll', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const symbol = params.symbol;
@@ -260,7 +274,10 @@ router.get('/position', function (req, res, next) {
     const headers = req.headers;
     const params = req.query;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const filter = params.filter;
@@ -278,7 +295,10 @@ router.post('/positionLeverage', function (req, res, next) {
     const headers = req.headers;
     const params = req.body;
 
-    const testnet = Boolean(headers.testnet);
+    let testnet = Boolean(headers.testnet);
+    if (headers.testnet === 'false') {
+        testnet = false;
+    }
     const apiKeyID = headers.apikeyid;
     const apiKeySecret = headers.apikeysecret;
     const symbol = params.symbol;
@@ -292,7 +312,7 @@ router.post('/positionLeverage', function (req, res, next) {
         return;
     }
 
-    console.log('rest-positionLeverage post', testnet, apiKeyID, apiKeySecret, JSON.stringify(body));
+    console.log('rest-positionLeverage post', headers.testnet, testnet, apiKeyID, apiKeySecret, JSON.stringify(body));
     const bitmexApi = new BitMEXApi(testnet, apiKeyID, apiKeySecret);
     bitmexApi.positionLeverage(body, (data) => {
         // console.log('rest-positionLeverage post', JSON.stringify(data));

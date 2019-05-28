@@ -76,13 +76,13 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                     method: method,
                     body: data,
                 };
-
+                console.log('request-options', JSON.stringify(requestOptions));
                 request(requestOptions, function (error, response, body) {
                     debug('request', new Date(), response.statusCode, requestOptions.method, requestOptions.url);
                     if (error || response.statusCode !== 200) {
                         console.warn('request', error, body);
                         if (typeof onRejected === 'function') {
-                            onRejected(error);
+                            onRejected(body);
                         }
                         return;
                     }
