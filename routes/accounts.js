@@ -94,6 +94,7 @@ router.post('/save', (req, res, next) => {
             res.status(200).send({
                 result: 'error',
                 message: 'Unknown error',
+                error: error,
             });
         } else {
             if (parseInt(results[0].count) > 0) {
@@ -108,6 +109,7 @@ router.post('/save', (req, res, next) => {
                         res.status(200).send({
                             result: 'error',
                             message: 'Unknown error',
+                            error: error,
                         });
                     } else {
                         SocketIOServerService.remakeAllSockets();
@@ -142,6 +144,7 @@ router.put('/save', (req, res, next) => {
             res.status(200).send({
                 result: 'error',
                 message: 'Unknown error',
+                error: error,
             });
         } else {
             SocketIOServerService.remakeAllSockets();
@@ -164,6 +167,7 @@ router.delete('/save', (req, res, next) => {
             res.status(200).send({
                 result: 'error',
                 message: 'Unknown error',
+                error: error,
             });
         } else {
             SocketIOServerService.remakeAllSockets();

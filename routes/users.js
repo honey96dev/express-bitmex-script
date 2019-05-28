@@ -20,6 +20,7 @@ const loginProc = (req, res, next) => {
                 res.status(200).send({
                     result: 'error',
                     message: 'Unknown error',
+                    error: error,
                 });
                 return;
             }
@@ -32,17 +33,18 @@ const loginProc = (req, res, next) => {
                 });
                 return;
             }
-            sql = sprintfJs.sprintf("SELECT COUNT(U.email) `count`,  U.* FROM `users` U WHERE BINARY U.email = '%s' AND BINARY U.password = '%s';", email, hash);
+            sql = sprintfJs.sprintf("SELECT U.id, U.email, U.name FROM `users` U WHERE BINARY U.email = '%s' AND BINARY U.password = '%s';", email, hash);
             console.log('login', sql);
             dbConn.query(sql, null, (error, results, fields) => {
                 if (error) {
                     res.status(200).send({
                         result: 'error',
                         message: 'Unknown error',
+                        error: error,
                     });
                     return;
                 }
-                const count = parseInt(results[0].count);
+                const count = typeof results !== "undefined" ? results.length : 0;
 
                 if (count === 0) {
                     res.status(200).send({
@@ -85,6 +87,7 @@ const signupProc = (req, res, next) => {
                 res.status(200).send({
                     result: 'error',
                     message: 'Unknown error',
+                    error: error,
                 });
                 return;
             }
@@ -104,6 +107,7 @@ const signupProc = (req, res, next) => {
                     res.status(200).send({
                         result: 'error',
                         message: 'Unknown error',
+                        error: error,
                     });
                 } else {
                     res.status(200).send({

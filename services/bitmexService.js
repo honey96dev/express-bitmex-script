@@ -31,6 +31,7 @@ let service = {
     ioClient: undefined,
     wallets: new Map(),
     positions: new Map(),
+    orders: new Map(),
 
     initSocketIOClient: () => {
         service.ioClient = SocketIOClient(config.server.baseUrl, {
@@ -52,14 +53,19 @@ let service = {
             console.log('socket-io', 'connect');
             service.ioClient.emit('wallets', map_to_json(service.wallets));
             service.ioClient.emit('positions', map_to_json(service.positions));
+            service.ioClient.emit('orders', map_to_json(service.orders));
         });
         service.ioClient.on('wallets?', (data) => {
-            console.log('socket-io', 'wallets?');
+            // console.log('socket-io', 'wallets?');
             service.ioClient.emit('wallets', map_to_json(service.wallets));
         });
         service.ioClient.on('positions?', (data) => {
-            console.log('socket-io', 'positions?');
+            // console.log('socket-io', 'positions?');
             service.ioClient.emit('positions', map_to_json(service.positions));
+        });
+        service.ioClient.on('orders?', (data) => {
+            // console.log('socket-io', 'positions?');
+            service.ioClient.emit('orders', map_to_json(service.orders));
         });
         service.ioClient.on('alive', (data) => {
             console.log('socket-io', 'alive', data);
@@ -176,6 +182,7 @@ let service = {
     },
 
     initFromDb: (tableName, callback) => {
+        // let sql = sprintfJs.sprintf("SELECT A.* FROM `%s` A where id = 1;", tableName);
         let sql = sprintfJs.sprintf("SELECT A.* FROM `%s` A;", tableName);
         dbConn.query(sql, null, (error, results, fields) => {
             if (error) {
@@ -249,8 +256,10 @@ let service = {
     },
 
     onWsOrder: (action, data, account) => {
-        console.log('onWsOrder', new Date(), account.id, action, JSON.stringify(data));
-        if (action === 'insert') {
+        // console.log('onWsOrder', new Date(), account.id, action, JSON.stringify(data));
+        if (action === 'partial') {
+            service.orders.set(account.id, data);
+        } else if (action === 'insert') {
             const rest = account.rest;
             if (account.isParent) {
                 for (let account1 of service.accounts) {
@@ -276,12 +285,26 @@ let service = {
 
                         const requestOptions = {
                             headers: headers,
-                            url: 'http://127.0.0.1:3000/rest/order',
+                            url: config.server.baseUrl + 'rest/order',
                             method: POST,
                             body: body
                         };
                         request(requestOptions);
                     }
+                }
+            }
+
+            let orders = service.orders.get(account.id);
+            for (let item of data) {
+                let flag = true;
+                for (let order of orders) {
+                    if (item.orderID === order.orderID) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    orders.push(item);
                 }
             }
         } else if (action === 'update') {
@@ -311,7 +334,7 @@ let service = {
 
                             const requestOptions = {
                                 headers: headers,
-                                url: 'http://127.0.0.1:3000/rest/order',
+                                url: config.server.baseUrl + 'rest/order',
                                 method: DELETE,
                                 body: body
                             };
@@ -328,7 +351,7 @@ let service = {
 
                             const requestOptions = {
                                 headers: headers,
-                                url: 'http://127.0.0.1:3000/rest/order',
+                                url: config.server.baseUrl + 'rest/order',
                                 method: PUT,
                                 body: body
                             };
@@ -345,14 +368,15 @@ let service = {
 
                             const requestOptions = {
                                 headers: headers,
-                                url: 'http://127.0.0.1:3000/rest/order',
+                                url: config.server.baseUrl + 'rest/order',
                                 method: PUT,
                                 body: body
                             };
                             request(requestOptions);
-                        } else if (typeof item.pegOffsetValue !== 'undefined') {
+                        } else if (typeof item.stopPx !== 'undefined' || typeof item.pegOffsetValue !== 'undefined') {
                             body = {
                                 orderID: item.orderID,
+                                stopPx: item.stopPx,
                                 pegOffsetValue: item.pegOffsetValue,
                                 isClone: true,
                             };
@@ -362,7 +386,7 @@ let service = {
 
                             const requestOptions = {
                                 headers: headers,
-                                url: 'http://127.0.0.1:3000/rest/order',
+                                url: config.server.baseUrl + 'rest/order',
                                 method: PUT,
                                 body: body
                             };
@@ -371,6 +395,34 @@ let service = {
                     }
                 }
             }
+
+            let orders = service.orders.get(account.id);
+            let idx;
+            const cnt = orders.length - 1;
+            for (let item of data) {
+                for (idx = cnt; idx >= 0; idx--) {
+                    if (item.orderID === orders[idx].orderID) {
+                        // console.log('orders[idx].ordStatus', orders[idx].ordStatus);
+                        if (item.ordStatus === 'Filled' || item.ordStatus === 'Canceled') {
+                            // console.log('orders[idx]1234', orders[idx].ordStatus);
+                            orders.splice(idx, 1);
+                        } else {
+                            Object.entries(item).forEach(entry => {
+                                let key = entry[0];
+                                let value = entry[1];
+                                orders[idx][key] = value;
+                            });
+                        }
+                        break;
+                    }
+                }
+            }
+            service.orders.set(account.id, orders);
+        }
+
+        if (!!service.ioClient && service.ioClient.connected) {
+            // console.log(service.orders);
+            service.ioClient.emit('orders', map_to_json(service.orders));
         }
     },
 
@@ -379,7 +431,7 @@ let service = {
     },
 
     onWsPosition: (action, data, account) => {
-        console.log('onWsPosition', new Date(), account.id, action, JSON.stringify(data));
+        // console.log('onWsPosition', new Date(), account.id, action, JSON.stringify(data));
 
         if (action === 'partial') {
             for (let item of data) {
@@ -455,14 +507,14 @@ let service = {
             }
         }
 
-        if (account.isParent && !!service.ioClient && service.ioClient.connected) {
+        if (!!service.ioClient && service.ioClient.connected) {
             // console.log('service.positions', map_to_object(service.positions));
             service.ioClient.emit('positions', map_to_json(service.positions));
         }
     },
 
     onWsWallet: (action, data, account) => {
-        console.log('onWsWallet', account.id, action, JSON.stringify(data));
+        // console.log('onWsWallet', account.id, action, JSON.stringify(data));
         if (action === 'partial') {
             if (data.length > 0) {
                 let item = data[0];

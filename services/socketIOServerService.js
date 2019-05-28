@@ -3,9 +3,11 @@ let service = {
     // clients: [],
     wallets: {},
     positions: {},
+    orders: {},
     serveAccountIds: {},
     walletsClientSockets: [],
     positionsClientSockets: [],
+    ordersClientSockets: [],
 
     initSocketIOServer: (ioServer) => {
         service.ioServer = ioServer;
@@ -17,7 +19,7 @@ let service = {
 
         service.ioServer.on('connection', (socket) => {
             // service.clients.push(socket);
-            console.log('connection', socket.id);
+            // console.log('connection', socket.id);
             service.serveAccountIds[socket.id] = [];
             socket.on('alive?', (data) => {
                 socket.emit('alive', socket.id);
@@ -25,6 +27,7 @@ let service = {
             });
 
             socket.on('requestAccounts', (data) => {
+                console.log('requestAccounts', socket.id, data);
                 service.serveAccountIds[socket.id] = JSON.parse(data);
             });
 
@@ -35,6 +38,11 @@ let service = {
 
             socket.on('positions?', (data) => {
                 service.positionsClientSockets.push(socket);
+                // console.log(service.positionsClientSockets.length);
+            });
+
+            socket.on('orders?', (data) => {
+                service.ordersClientSockets.push(socket);
                 // console.log(service.positionsClientSockets.length);
             });
 
@@ -56,6 +64,16 @@ let service = {
                     }
                 }
                 socket.emit('positions', ioData);
+            });
+
+            socket.on('orders??', (data) => {
+                let ioData = {};
+                for (let accountId of service.serveAccountIds[socket.id]) {
+                    if (typeof service.orders[accountId] !== 'undefined') {
+                        ioData[accountId] = service.orders[accountId];
+                    }
+                }
+                socket.emit('orders', ioData);
             });
 
             socket.on('wallets', (data) => {
@@ -88,7 +106,6 @@ let service = {
             });
 
             socket.on('positions', (data) => {
-                // console.log('positions', data);
                 const json = JSON.parse(data);
 
                 service.positions = {};
@@ -109,7 +126,9 @@ let service = {
                     service.positions[value.accountId] = symbols;
                 });
 
-                for (let client of service.walletsClientSockets) {
+
+                for (let client of service.positionsClientSockets) {
+                    // console.log('positions', client.id, service.serveAccountIds);
                     let ioData = {};
                     for (let accountId of service.serveAccountIds[client.id]) {
                         if (typeof service.positions[accountId] !== 'undefined') {
@@ -119,6 +138,20 @@ let service = {
                     client.emit('positions', ioData);
                 }
                 // console.log('positions', JSON.stringify(service.positions));
+            });
+
+            socket.on('orders', (data) => {
+                // console.log(data);
+                service.orders = JSON.parse(data);
+                for (let client of service.ordersClientSockets) {
+                    let ioData = {};
+                    for (let accountId of service.serveAccountIds[client.id]) {
+                        if (typeof service.positions[accountId] !== 'undefined') {
+                            ioData[accountId] = service.orders[accountId];
+                        }
+                    }
+                    client.emit('orders', ioData);
+                }
             });
         });
     },

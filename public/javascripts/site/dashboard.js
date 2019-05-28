@@ -9,6 +9,8 @@ var Dashboard = function () {
         // return num.toPrecision(precision).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
     }
 
+    this.accountId = undefined;
+
     this.init = function () {
         let self = this;
         $('#kt_select2_account').select2({
@@ -18,10 +20,14 @@ var Dashboard = function () {
 
         $('#kt_select2_account').on('select2:select', function (e) {
             const data = e.params.data;
-            const accountId = data.id;
-            self.socket.emit('requestAccounts', JSON.stringify([accountId]));
+            self.accountId = data.id;
+            self.socket.emit('requestAccounts', JSON.stringify([self.accountId]));
             self.socket.emit('wallets??');
             self.socket.emit('positions??');
+            self.socket.emit('orders??');
+            // self.socket.emit('wallets?');
+            // self.socket.emit('positions?');
+            // self.socket.emit('orders?');
             // console.log('select event', accountId);
             // $.ajax({
             //     method: 'POST',
@@ -128,18 +134,23 @@ var Dashboard = function () {
             console.log('socket-io', 'alive', data);
         });
         this.socket.on('connect', () => {
-            console.log('socket-io', 'connect');
-            self.socket.emit('wallets?');
-            self.socket.emit('positions?');
-            self.socket.emit('wallets??');
-            self.socket.emit('positions??');
+            // console.log('socket-io', 'connect');
+            if (!!self.accountId) {
+                self.socket.emit('requestAccounts', JSON.stringify([self.accountId]));
+                self.socket.emit('wallets??');
+                self.socket.emit('positions??');
+                self.socket.emit('orders??');
+                self.socket.emit('wallets?');
+                self.socket.emit('positions?');
+                self.socket.emit('orders?');
+            }
         });
 
         this.socket.on('wallets', (data) => {
-            console.log('socket-io', 'wallets', data);
+            // console.log('socket-io', 'wallets', data);
         });
         this.socket.on('positions', (data) => {
-            console.log('socket-io', 'positions', data);
+            // console.log('socket-io', 'positions', data);
             // data = JSON.parse(data);
 
             let newData = [];
@@ -152,6 +163,9 @@ var Dashboard = function () {
             this.table.clear();
             this.table.rows.add(newData);
             this.table.draw();
+        });
+        this.socket.on('orders', (data) => {
+            console.log('socket-io', 'orders', data);
         });
     };
 };

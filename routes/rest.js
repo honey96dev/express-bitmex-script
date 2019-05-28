@@ -30,6 +30,7 @@ router.put('/order', function (req, res, next) {
     const orderID = params.orderID;
     const orderQty = params.orderQty;
     const price = params.price;
+    const stopPx = params.stopPx;
     const pegOffsetValue = params.pegOffsetValue;
     const isClone = params.isClone;
 
@@ -58,6 +59,9 @@ router.put('/order', function (req, res, next) {
                 }
                 if (typeof price !== 'undefined') {
                     body.price = price;
+                }
+                if (typeof stopPx !== 'undefined') {
+                    body.stopPx = stopPx;
                 }
                 if (typeof pegOffsetValue !== 'undefined') {
                     body.pegOffsetValue = pegOffsetValue;
