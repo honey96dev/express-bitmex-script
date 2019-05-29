@@ -74,9 +74,10 @@ var Wallet = function () {
             });
 
             let wallet = [];
+            const amount = typeof newData.amount === 'undefined' ? 0 : newData.amount;
             wallet.push({
-                btc: newData.amount / 100000000,
-                satoshi: newData.amount,
+                btc: amount / 100000000,
+                satoshi: amount,
             });
 
             this.table.clear();
