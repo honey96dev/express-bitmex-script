@@ -92,18 +92,60 @@ html(lang='en')
                                 //        span.kt-menu__link-icon
                                 //            i.fa.fa-info-circle.margin-auto
                                 //        span.kt-menu__link-text Information
-                                if uri == 'accounts/index'
+                                if uri == 'accounts/bitmex'
                                     li.kt-menu__item.kt-menu__item--active(aria-haspopup='true')
-                                        a.kt-menu__link(href!=baseUrl + 'accounts')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/bitmex')
                                             span.kt-menu__link-icon
                                                 i.fa.fa-user.margin-auto
                                             span.kt-menu__link-text Management
                                 else
                                     li.kt-menu__item(aria-haspopup='true')
-                                        a.kt-menu__link(href!=baseUrl + 'accounts')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/bitmex')
                                             span.kt-menu__link-icon
                                                 i.fa.fa-user.margin-auto
                                             span.kt-menu__link-text Management
+                                if uri == 'accounts/wallet'
+                                    li.kt-menu__item.kt-menu__item--active(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/wallet')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-wallet.margin-auto
+                                            span.kt-menu__link-text Balance
+                                else
+                                    li.kt-menu__item(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/wallet')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-wallet.margin-auto
+                                            span.kt-menu__link-text Balance
+                                li.kt-menu__section
+                                    h4.kt-menu__section-text Users
+                                    i.kt-menu__section-icon.flaticon-more-v2
+                                if uri == 'accounts/users'
+                                    li.kt-menu__item.kt-menu__item--active(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/users')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-user.margin-auto
+                                            span.kt-menu__link-text Management
+                                else
+                                    li.kt-menu__item(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'accounts/users')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-user.margin-auto
+                                            span.kt-menu__link-text Management
+                                li.kt-menu__section
+                                    h4.kt-menu__section-text Log
+                                    i.kt-menu__section-icon.flaticon-more-v2
+                                if uri == 'dashboard/logs'
+                                    li.kt-menu__item.kt-menu__item--active(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'dashboard/logs')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-user.margin-auto
+                                            span.kt-menu__link-text View
+                                else
+                                    li.kt-menu__item(aria-haspopup='true')
+                                        a.kt-menu__link(href!=baseUrl + 'dashboard/logs')
+                                            span.kt-menu__link-icon
+                                                i.fa.fa-history.margin-auto
+                                            span.kt-menu__link-text View
                 #kt_wrapper.kt-grid__item.kt-grid__item--fluid.kt-grid.kt-grid--hor.kt-wrapper
                     #kt_header.kt-header.kt-grid__item.kt-header--fixed
                         button#kt_header_menu_mobile_close_btn.kt-header-menu-wrapper-close

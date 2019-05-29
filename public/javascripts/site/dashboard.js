@@ -22,10 +22,10 @@ var Dashboard = function () {
             const data = e.params.data;
             self.accountId = data.id;
             self.socket.emit('requestAccounts', JSON.stringify([self.accountId]));
-            self.socket.emit('wallets??');
+            // self.socket.emit('wallets??');
             self.socket.emit('positions??');
             self.socket.emit('orders??');
-            self.socket.emit('wallets?');
+            // self.socket.emit('wallets?');
             self.socket.emit('positions?');
             self.socket.emit('orders?');
             // console.log('select event', accountId);
@@ -188,18 +188,18 @@ var Dashboard = function () {
             // console.log('socket-io', 'connect');
             if (!!self.accountId) {
                 self.socket.emit('requestAccounts', JSON.stringify([self.accountId]));
-                self.socket.emit('wallets??');
+                // self.socket.emit('wallets??');
                 self.socket.emit('positions??');
                 self.socket.emit('orders??');
-                self.socket.emit('wallets?');
+                // self.socket.emit('wallets?');
                 self.socket.emit('positions?');
                 self.socket.emit('orders?');
             }
         });
-
-        this.socket.on('wallets', (data) => {
-            // console.log('socket-io', 'wallets', data);
-        });
+        //
+        // this.socket.on('wallets', (data) => {
+        //     // console.log('socket-io', 'wallets', data);
+        // });
         this.socket.on('positions', (data) => {
             // console.log('socket-io', 'positions', data);
             // data = JSON.parse(data);

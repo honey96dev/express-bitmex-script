@@ -25,7 +25,7 @@ var Accounts = function () {
     this.init = function () {
         let self = this;
         this.table = $('#accounts').DataTable({
-            ajax: '/accounts/list',
+            ajax: '/accounts/bitmex/list',
             columns: [
                 {
                     width: '3%',
@@ -151,7 +151,7 @@ var Accounts = function () {
                     if (result === 'success') {
                         $.ajax({
                             method: 'get',
-                            url: '/accounts/list',
+                            url: '/accounts/bitmex/list',
                             dataType: 'json',
                             success: function (data) {
                                 self.table.clear();
@@ -232,7 +232,7 @@ var Accounts = function () {
         $('#apiKeySecret').val(data.apiKeySecret);
         $('#isParent').val(data.isParent);
         $('#bitmexAccountDetailsModal').modal('show');
-        console.log(idx);
+        // console.log(idx);
     };
     this.deleteBitMEXAccount = function (id) {
         let self = this;
@@ -252,7 +252,7 @@ var Accounts = function () {
                     if (result === 'success') {
                         $.ajax({
                             method: 'get',
-                            url: '/accounts/list',
+                            url: '/accounts/bitmex/list',
                             dataType: 'json',
                             success: function (data) {
                                 self.table.clear();

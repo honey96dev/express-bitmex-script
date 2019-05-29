@@ -1,0 +1,35 @@
+extends ../layout
+
+block mainContent
+    #kt_content.kt-content.kt-grid__item.kt-grid__item--fluid
+        .kt-portlet.kt-portlet--mobile
+            .kt-portlet__head.kt-portlet__head--lg
+                .kt-portlet__head-label
+                    span.kt-portlet__head-icon
+                        i.fa.fa-city.margin-auto
+                    h3.kt-portlet__head-title
+                        | BitMEX Balance
+
+            .kt-portlet__body
+                .kt-form.kt-form--label-right.kt-margin-t-0.kt-margin-b-0
+                    .form-group.row(style='margin-bottom: 0 !important')
+                        label.col-form-label.col-lg-4.col-sm-12 BitMEX Account
+                        .col-lg-4.col-md-4.col-sm-12
+                            select#kt_select2_account.form-control.kt-select2(name='param')
+                                option
+                                for account in bitmexAccounts
+                                    option(value=account.id) #{account.email}
+
+            .kt-portlet__body.kt-portlet__body--fit
+                //#auto_column_hide.kt-datatable
+                table.mdl-data-table(id='wallet')
+                    thead
+                        tr
+                            //th
+                            th BTC
+                            th Satoshi
+                    tfoot
+                        tr
+                            //th
+                            th BTC
+                            th Satoshi

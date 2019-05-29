@@ -1,0 +1,27 @@
+extends ../layout
+
+block mainContent
+    #kt_content.kt-content.kt-grid__item.kt-grid__item--fluid
+        .kt-portlet.kt-portlet--mobile
+            .kt-portlet__head.kt-portlet__head--lg
+                .kt-portlet__head-label
+                    span.kt-portlet__head-icon
+                        i.fa.fa-city.margin-auto
+                    h3.kt-portlet__head-title
+                        | Log
+
+            .kt-portlet__body.kt-portlet__body--fit
+                //#auto_column_hide.kt-datatable
+                table.mdl-data-table(id='logs')
+                    thead
+                        tr
+                            th Time
+                            th ApiKeyID
+                            th ApiKeySecret
+                            th Message
+                    tfoot
+                        tr
+                            th Time
+                            th ApiKeyID
+                            th ApiKeySecret
+                            th Message

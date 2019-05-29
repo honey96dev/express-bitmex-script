@@ -1,0 +1,59 @@
+extends ../layout
+
+block mainContent
+    #kt_content.kt-content.kt-grid__item.kt-grid__item--fluid
+        .kt-portlet.kt-portlet--mobile
+            .kt-portlet__head.kt-portlet__head--lg
+                .kt-portlet__head-label
+                    span.kt-portlet__head-icon
+                        i.fa.fa-user.margin-auto
+                    h3.kt-portlet__head-title
+                        | Users
+
+
+            .kt-portlet__body.kt-portlet__body--fit
+                //#auto_column_hide.kt-datatable
+                table.display(id='users' class="mdl-data-table")
+                    thead
+                        tr
+                            th Email
+                            th Name
+                            th
+                    tfoot
+                        tr
+                            th Email
+                            th Name
+                            th
+
+    #usersDetailsModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='usersDetailsModalLabel', aria-hidden='true')
+        .modal-dialog(role='document')
+            .modal-content
+                .modal-header
+                    h5.modal-title(style='margin-top: 0') BitMEX Account Details
+                    button.close(type='button', data-dismiss='modal', aria-label='Close')
+                form#usersDetailsForm.modal-body(action='/accounts/users/save', data-method='', novalidate='novalidate')
+                    input#accountId.form-control(type='hidden', name='accountId')
+                    //.modal-body
+                    .form-group.account-details
+                        label Email
+                        input#email.form-control(type='email', name='email', placeholder='Enter email')
+                    .form-group.account-details
+                        label Name
+                        input#name.form-control(type='name', name='name', placeholder='Enter name')
+                    label.kt-checkbox.kt-checkbox--primary
+                        input#testnet(type='checkbox', name='testnet')
+                        |  Testnet?
+                        span
+                    .form-group.account-details
+                        label ApiKeyID
+                        input#apiKeyID.form-control(type='name', name='apiKeyID', placeholder='Enter ApiKeyID')
+                    .form-group.account-details
+                        label ApiKeySecret
+                        input#apiKeySecret.form-control(type='name', name='apiKeySecret', placeholder='Enter ApiKeySecret')
+                    label.kt-checkbox.kt-checkbox--primary
+                        input#isParent(type='checkbox', name='isParent')
+                        |  Parent?
+                        span
+                .modal-footer
+                    button#closeModal.btn.btn-secondary(type='button', name='closeModal', data-dismiss='modal') Close
+                    button#saveBitMEXAccount.btn.btn-primary(type='button', name='saveBitMEXAccount') Save

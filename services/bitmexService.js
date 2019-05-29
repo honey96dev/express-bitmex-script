@@ -1,3 +1,4 @@
+import config from '../core/config';
 import dbConn from '../core/dbConn';
 import sprintfJs from 'sprintf-js';
 import WebSocket from 'ws-reconnect';
@@ -6,7 +7,6 @@ import request from 'request';
 import crypto from 'crypto'
 import {BitMEXApi, DELETE, GET, POST, PUT} from '../core/BitmexApi';
 import _ from "lodash";
-import config from '../core/config';
 
 const map_to_object = map => {
     const object = {};
@@ -145,6 +145,11 @@ let service = {
 
         socket.on('reconnect', (data) => {
             console.warn('reconnect', account.id, data);
+            const timestamp = new Date().toISOString();
+            let sql = sprintfJs.sprintf("INSERT INTO `bitmex_log`(`timestamp`, `email`, `testnet`, `apiKeyID`, `apiKeySecret`, `isParent`, `message`) VALUES ('', '', '', '', '', '', '') ON DUPLICATE KEY UPDATE `email` = VALUES(`email`), `testnet` = VALUES(`testnet`), `apiKeyID` = VALUES(`apiKeyID`), `apiKeySecret` = VALUES(`apiKeySecret`), `isParent` = VALUES(`isParent`), `message` = VALUES(`message`);", timestamp, account.email, account.testnet, account.apiKeyID, account.apiKeySecret, account.isParent, 'Websocket reconnecting');
+
+            dbConn.query(sql);
+            // dbConn.query(sql, null, (error, results, fields) => {});
             // account.socket.start();
         });
 
@@ -169,6 +174,7 @@ let service = {
                 rest: new BitMEXApi(Boolean(item.testnet), item.apiKeyID, item.apiKeySecret),
                 socket: undefined,
                 subscribes: [],
+                email: Boolean(item.email),
                 testnet: Boolean(item.testnet),
                 apiKeyID: item.apiKeyID,
                 apiKeySecret: item.apiKeySecret,

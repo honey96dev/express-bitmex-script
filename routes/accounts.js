@@ -8,7 +8,7 @@ import SocketIOServerService from '../services/socketIOServerService';
 const router = express.Router();
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/bitmex', function (req, res, next) {
     const styles = [
         // 'vendors/general/jquery-datatable/css/jquery.dataTables.css',
         'vendors/general/material-design-lite/material.css',
@@ -23,9 +23,9 @@ router.get('/', function (req, res, next) {
     ];
 
     // bitmexAccounts.accountList((data) => {
-    res.render('accounts/index', {
+    res.render('accounts/bitmex', {
         baseUrl: config.server.baseUrl,
-        uri: 'accounts/index',
+        uri: 'accounts/bitmex',
         styles: styles,
         scripts: scripts,
         // bitmexAccounts: data,
@@ -42,7 +42,7 @@ router.get('/', function (req, res, next) {
     // res.render('index/index', {baseUrl: config.server.baseUrl});
 });
 
-router.get('/list', (req, res, next) => {
+router.get('/bitmex/list', (req, res, next) => {
     if (req.xhr) {
         bitmexAccounts.accountList((data) => {
             res.status(200).send({
@@ -56,29 +56,12 @@ router.get('/list', (req, res, next) => {
                 data: [],
             });
         });
-        // let sql = sprintfJs.sprintf("SELECT * FROM `bitmex_accounts`;");
-        //
-        // dbConn.query(sql, null, (error, results, fields) => {
-        //     if (error) {
-        //         res.status(200).send({
-        //             result: 'error',
-        //             message: 'Unknown error',
-        //             data: [],
-        //         });
-        //         return;
-        //     } else {
-        //         res.status(200).send({
-        //             result: 'success',
-        //             data: results,
-        //         });
-        //     }
-        // });
     } else {
         res.redirect(404);
     }
 });
 
-router.post('/save', (req, res, next) => {
+router.post('/bitmex/save', (req, res, next) => {
     const params = req.body;
     const email = params.email;
     const name = params.name;
@@ -127,7 +110,7 @@ router.post('/save', (req, res, next) => {
     // let sql = sprintfJs.sprintf("", email, name, testnet, apiKeyID, apiKeySecret, isParent);
 });
 
-router.put('/save', (req, res, next) => {
+router.put('/bitmex/save', (req, res, next) => {
     const params = req.body;
     const accountId = params.accountId;
     const email = params.email;
@@ -157,11 +140,115 @@ router.put('/save', (req, res, next) => {
     // let sql = sprintfJs.sprintf("", email, name, testnet, apiKeyID, apiKeySecret, isParent);
 });
 
-router.delete('/save', (req, res, next) => {
+router.delete('/bitmex/save', (req, res, next) => {
     const params = req.body;
     const accountId = params.accountId;
 
     let sql = sprintfJs.sprintf("DELETE FROM `bitmex_accounts` WHERE `id` = '%d';", accountId);
+    dbConn.query(sql, null, (error, results, fields) => {
+        if (error) {
+            res.status(200).send({
+                result: 'error',
+                message: 'Unknown error',
+                error: error,
+            });
+        } else {
+            SocketIOServerService.remakeAllSockets();
+            res.status(200).send({
+                result: 'success',
+                message: 'Successfully deleted',
+            });
+        }
+    });
+    // let sql = sprintfJs.sprintf("", email, name, testnet, apiKeyID, apiKeySecret, isParent);
+});
+
+
+router.get('/wallet', function (req, res, next) {
+    const styles = [
+        // 'vendors/general/jquery-datatable/css/jquery.dataTables.css',
+        'vendors/general/material-design-lite/material.css',
+        'vendors/general/jquery-datatable/css/dataTables.material.css',
+        'stylesheets/site/wallet.css',
+    ];
+    const scripts = [
+        'vendors/general/jquery-datatable/js/jquery.dataTables.js',
+        'vendors/general/jquery-datatable/js/dataTables.bootstrap4.js',
+        'vendors/general/socket.io/socket.io.js',
+        'javascripts/site/wallet.js',
+    ];
+
+    bitmexAccounts.accountList((data) => {
+        res.render('accounts/wallet', {
+            baseUrl: config.server.baseUrl,
+            uri: 'accounts/wallet',
+            styles: styles,
+            scripts: scripts,
+            bitmexAccounts: data,
+        });
+    }, (error) => {
+        res.render('accounts/wallet', {
+            baseUrl: config.server.baseUrl,
+            uri: 'accounts/wallet',
+            styles: styles,
+            scripts: scripts,
+            bitmexAccounts: [],
+        });
+    });
+
+    // res.render('dashboard/index', {baseUrl: config.server.baseUrl});
+});
+
+
+/* GET home page. */
+router.get('/users', function (req, res, next) {
+    const styles = [
+        // 'vendors/general/jquery-datatable/css/jquery.dataTables.css',
+        'vendors/general/material-design-lite/material.css',
+        'vendors/general/jquery-datatable/css/dataTables.material.css',
+        'stylesheets/site/users.css',
+    ];
+    const scripts = [
+        'vendors/general/jquery-datatable/js/jquery.dataTables.js',
+        'vendors/general/jquery-datatable/js/dataTables.bootstrap4.js',
+        'vendors/general/socket.io/socket.io.js',
+        'javascripts/site/users.js',
+    ];
+
+    res.render('accounts/users', {
+        baseUrl: config.server.baseUrl,
+        uri: 'accounts/users',
+        styles: styles,
+        scripts: scripts,
+        // bitmexAccounts: data,
+    });
+});
+
+router.get('/users/list', (req, res, next) => {
+    let sql = sprintfJs.sprintf("SELECT * FROM `users`;");
+
+    dbConn.query(sql, null, (error, results, fields) => {
+        if (error) {
+            res.status(200).send({
+                result: 'error',
+                message: 'Unknown error',
+                data: [],
+            });
+            return;
+        } else {
+            res.status(200).send({
+                result: 'success',
+                data: results,
+            });
+        }
+    });
+});
+
+router.delete('/users/save', (req, res, next) => {
+    const params = req.body;
+    const accountId = params.accountId;
+
+    let sql = sprintfJs.sprintf("DELETE FROM `users` WHERE `id` = '%d';", accountId);
     dbConn.query(sql, null, (error, results, fields) => {
         if (error) {
             res.status(200).send({

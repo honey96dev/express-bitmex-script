@@ -2,6 +2,8 @@ import request from "request";
 import crypto from 'crypto';
 import _ from 'lodash';
 import debugLib from 'debug';
+import sprintfJs from "sprintf-js";
+import dbConn from "./dbConn";
 
 const debug = new debugLib('bitmex:rest');
 
@@ -52,6 +54,7 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
     this.request = (method, path, data, requireAuthentication, onFulfilled, onRejected) => {
         debug('request-begin');
         method = method.toUpperCase();
+        let self = this;
         if (requireAuthentication) {
             this.getTimestamp((result) => {
                 const expires = parseInt(result / 1000 + 5);
@@ -84,6 +87,12 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                         if (typeof onRejected === 'function') {
                             onRejected(body);
                         }
+
+                        const timestamp = new Date().toISOString();
+                        let sql = sprintfJs.sprintf("INSERT INTO `bitmex_log`(`timestamp`, `testnet`, `apiKeyID`, `apiKeySecret`, `message`) VALUES ('%s', '%d', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `testnet` = VALUES(`testnet`), `apiKeyID` = VALUES(`apiKeyID`), `apiKeySecret` = VALUES(`apiKeySecret`), `message` = VALUES(`message`);", timestamp, self.testnet, self.apiKeyID, self.apiKeySecret, 'Bitmex API fail: ' + path);
+                        console.log('sql-log', sql);
+                        dbConn.query(sql);
+
                         return;
                     }
                     debug('success', body);
@@ -121,6 +130,12 @@ function BitmexApi(testnet, apiKeyID, apiKeySecret) {
                     if (typeof onRejected === 'function') {
                         onRejected(error);
                     }
+
+                    const timestamp = new Date().toISOString();
+                    let sql = sprintfJs.sprintf("INSERT INTO `bitmex_log`(`timestamp`, `testnet`, `apiKeyID`, `apiKeySecret`, `message`) VALUES ('%s', '%d', '%s', '%s', '%s') ON DUPLICATE KEY UPDATE `testnet` = VALUES(`testnet`), `apiKeyID` = VALUES(`apiKeyID`), `apiKeySecret` = VALUES(`apiKeySecret`), `message` = VALUES(`message`);", timestamp, self.testnet, self.apiKeyID, self.apiKeySecret, 'Bitmex API fail: ' + path);
+                    console.log('sql-log', sql);
+                    dbConn.query(sql);
+
                     return;
                 }
                 debug('success', body);
