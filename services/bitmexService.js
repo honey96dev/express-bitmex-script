@@ -87,7 +87,6 @@ let service = {
     },
 
     renewSocket: (account) => {
-        console.warn('renewSocket', account.id);
         const timestamp = new Date().getTime();
         if (account.renewSocketTimeoutId) {
             clearTimeout(account.renewSocketTimeoutId);
@@ -97,10 +96,12 @@ let service = {
             console.warn('renewSocket-still alive', account.id);
             return;
         }
-        let socket = new WebSocket(Boolean(account.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime', {
+        const wsUrl = Boolean(account.testnet) ? 'wss://testnet.bitmex.com/realtime' : 'wss://www.bitmex.com/realtime';
+        let socket = new WebSocket(wsUrl, {
             retryCount: 2, // default is 2
             reconnectInterval: 1 // default is 5
         });
+        console.warn('renewSocket', account.id, account.testnet, account.apiKeyID, account.apiKeySecret, wsUrl);
 
         socket.on('connect', () => {
             account.rest.getTimestamp((result) => {
@@ -129,6 +130,13 @@ let service = {
             account.lastTimestamp = new Date().getTime();
             data = JSON.parse(data);
             service.onWsMessage(data);
+            // console.log(data);
+            // console.log('message', account.id, JSON.stringify(data));
+            if (!!data.request) {
+                console.log('message', account.id, JSON.stringify(data));
+                // if (!!data.request.op) {
+                // }
+            }
             if (!!data.table) {
                 const table = data.table;
                 if (table === 'order') {
