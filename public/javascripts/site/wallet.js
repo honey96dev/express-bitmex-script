@@ -46,7 +46,7 @@ var Wallet = function () {
             },
         });
 
-        this.socket = io('localhost:3000', {
+        this.socket = io($('#baseUrl').val(), {
             reconnection: true,
             reconnectionDelay: 2000,
             reconnectionDelayMax: 4000,
